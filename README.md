@@ -6,13 +6,17 @@ Projeto desenvolvido para a disciplina Processo e Desenvolvimento de Software.
 Sistema destinado a auxiliar estudantes interessados em intercâmbio acadêmico,
 permitindo a visualização de países, universidades e documentos necessários.
 
+## Metodologia
+- Metodologia Ágil: Scrum
+- Ferramenta de gestão: Jira Software
+- Trabalho organizado em sprints
+
 ## Tecnologias (definição inicial)
 - Linguagem: Python
 - Framework (opcional): Flask
 - Persistência: SQLite
 - Frontend: HTML, CSS
 - Controle de versão: Git e GitHub
-
 
 ## Equipe
 - Isabela Amorim de Paula
