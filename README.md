@@ -15,7 +15,7 @@ permitindo a visualização de países, universidades e documentos necessários.
 - Linguagem: Python
 - Framework (opcional): Flask
 - Persistência: SQLite
-- Frontend: HTML, CSS
+- Frontend: HTML, CSS, JavaScript
 - Controle de versão: Git e GitHub
 
 ## Equipe
