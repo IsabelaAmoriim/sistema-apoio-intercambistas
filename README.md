@@ -17,7 +17,7 @@ permitindo a visualização de países, universidades e documentos necessários.
 ## Equipe
 - Isabela Amorim de Paula
 - Clara Magalhães dos Santos 
-- Clara Magalhães dos Santos
+- Breno Enedino Carrijo Pereira
 - Patrick Ramos Barbosa
 - Eduardo Souza Rocha
 
