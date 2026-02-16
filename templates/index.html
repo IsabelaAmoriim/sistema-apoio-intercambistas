@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Sistema de Apoio a Intercambistas</title>
 </head> 
 <body>
     
-    <header>
-    <h1 id="logo"><a href="index.html">SAI</a></h1>
+<header>
+    <h1 id="logo">
+        <a href="{{ url_for('home') }}">SAI</a>
+    </h1>
 
     <nav>
         <ul>
-            <li><a href="index.html">Início</a></li>
-            
+            <li><a href="{{ url_for('home') }}">Início</a></li>
             <li><a href="#recursos">Recursos</a></li>
             <li><a href="#comunidade">Comunidade</a></li>
             <li><a href="#suporte">Suporte</a></li>
@@ -22,84 +23,26 @@
     </nav>
 
     <div class="auth-buttons">
-        <a href="login.html" class="btn-entrar">Entrar</a>
-        <a href="cadastro.html" class="btn-criar">Criar Conta</a>
+        <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
+        <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
     </div>
 </header>
 
-    <main>
-        <div class="banner-principal">
-            <img src="fotos/young-friends-park.jpg" alt="banner principal do sai">
-            
-            <div class="banner-overlay">
-                <h1>Sua jornada internacional começa aqui.</h1>
-                <p>O apoio que você precisa para viver a melhor experiência de intercâmbio sem preocupações.</p>
-                <a href="cadastro.html" class="botao-acao">Começar Agora</a>
-            </div>
+<main>
+    <div class="banner-principal">
+        <img src="{{ url_for('static', filename='fotos/young-friends-park.jpg') }}" alt="banner principal do sai">
+        
+        <div class="banner-overlay">
+            <h1>Sua jornada internacional começa aqui.</h1>
+            <p>O apoio que você precisa para viver a melhor experiência de intercâmbio sem preocupações.</p>
+            <a href="{{ url_for('cadastro') }}" class="botao-acao">Começar Agora</a>
         </div>
-<section id="recursos" class="secao-conteudo">
-            <h2>Recursos Úteis</h2>
-            <p class="subtitulo">Ferramentas essenciais para planejar sua viagem.</p>
-            
-            <div class="grid-cards">
-                <div class="card">
-                    <h3>📝 Checklist</h3>
-                    <p>Não esqueça nada! Uma lista completa do que levar na mala.</p>
-                </div>
-                <div class="card">
-                    <h3>💰 Conversor</h3>
-                    <p>Veja a cotação da moeda do seu destino em tempo real.</p>
-                </div>
-                <div class="card">
-                    <h3>✈️ Guia de Vistos</h3>
-                    <p>Passo a passo para tirar seu visto sem dor de cabeça.</p>
-                </div>
-            </div>
-        </section>
+    </div>
 
-        <section id="comunidade" class="secao-destaque">
-            <h2>Nossa Comunidade</h2>
-            <p>Conecte-se com outros estudantes e compartilhe experiências.</p>
-            
-            <div class="depoimentos">
-                <div class="depoimento-item">
-                    <p>"O SAI me ajudou a encontrar moradia em Lisboa em 3 dias!"</p>
-                    <span>- Ana Silva, Intercâmbio em Portugal</span>
-                </div>
-                <div class="depoimento-item">
-                    <p>"Os grupos de estudo foram essenciais para meu inglês."</p>
-                    <span>- Carlos Jr, Intercâmbio no Canadá</span>
-                </div>
-            </div>
-            <br>
-            <a href="#" class="botao-acao" style="background-color: whitesmoke; color: rgb(24, 6, 96);">Entrar no Fórum</a>
-        </section>
-
-        <section id="suporte" class="secao-conteudo">
-            <h2>Precisa de Ajuda?</h2>
-            <p class="subtitulo">Estamos aqui para te apoiar em cada etapa.</p>
-            
-            <div class="faq-box">
-                <details>
-                    <summary>Como faço meu cadastro?</summary>
-                    <p>Clique no botão "Criar Conta" no topo da página e preencha seus dados.</p>
-                </details>
-                <details>
-                    <summary>O serviço é gratuito?</summary>
-                    <p>Sim! O SAI é uma iniciativa gratuita para apoiar estudantes.</p>
-                </details>
-                <details>
-                    <summary>Esqueci minha senha, e agora?</summary>
-                    <p>Vá na página de Login e clique em "Esqueci minha senha".</p>
-                </details>
-            </div>
-        </section>
-
-        <footer>
-            <p>&copy; 2026 SAI - Sistema de Apoio a Intercambistas. Todos os direitos reservados.</p>
-        </footer>
-        <br><br>
-    </main>
+    <footer>
+        <p>&copy; 2026 SAI - Sistema de Apoio a Intercambistas.</p>
+    </footer>
+</main>
 
 </body>
 </html>
