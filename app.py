@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import db, Usuario
 
 app = Flask(__name__)
@@ -22,17 +22,18 @@ def load_user(id):
 with app.app_context():
     db.create_all()
     
-# rotas atualizadas
-@app.route("/index.html")
+# rotas
+@app.route("/")
+@app.route("/index")
 def home():
     return render_template("index.html")
 
-@app.route("/dashboard.html")
+@app.route("/dashboard")
 @login_required
 def dashboard():
     return render_template("dashboard.html")
 
-@app.route("/cadastro.html", methods=['GET', 'POST'])
+@app.route("/cadastro", methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'GET':
         return render_template("cadastro.html")
@@ -52,7 +53,7 @@ def cadastro():
             nome=nome,
             email=email,
             cpf=cpf,
-            senha_hash=senha  # ideal seria usar hash depois
+            senha_hash=senha
         )
         
         db.session.add(novo_usuario)
@@ -61,7 +62,7 @@ def cadastro():
         flash("Usuário cadastrado com sucesso!")
         return redirect(url_for('login'))
 
-@app.route("/login.html", methods=['GET', 'POST'])
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template("login.html")
