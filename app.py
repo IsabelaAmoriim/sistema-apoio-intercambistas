@@ -23,16 +23,16 @@ with app.app_context():
     db.create_all()
     
 # rotas atualizadas
-@app.route("/index")
+@app.route("/index.html")
 def home():
     return render_template("index.html")
 
-@app.route("/dashboard")
+@app.route("/dashboard.html")
 @login_required
 def dashboard():
     return render_template("dashboard.html")
 
-@app.route("/cadastro", methods=['GET', 'POST'])
+@app.route("/cadastro.html", methods=['GET', 'POST'])
 def cadastro():
     if request.method == 'GET':
         return render_template("cadastro.html")
@@ -61,7 +61,7 @@ def cadastro():
         flash("Usuário cadastrado com sucesso!")
         return redirect(url_for('login'))
 
-@app.route("/login", methods=['GET', 'POST'])
+@app.route("/login.html", methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template("login.html")
