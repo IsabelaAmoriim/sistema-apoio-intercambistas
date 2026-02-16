@@ -18,13 +18,19 @@ login_manager.login_view = "login"
 def load_user(id):
     return Usuario.query.get(int(id))
 
-# cria tabelas se inexistentes
+# cria tabelas se não existirem
 with app.app_context():
     db.create_all()
-
+    
+# rotas atualizadas
 @app.route("/")
 def home():
-    return "<h1>Projeto Sistema de Apoio a Intercambistas</h1>"
+    return render_template("index.html")
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html")
 
 @app.route("/cadastro", methods=['GET', 'POST'])
 def cadastro():
@@ -37,14 +43,17 @@ def cadastro():
         cpf = request.form['cpf']
         senha = request.form['senha']
         
-        # verifica se email já existe usando método do BD
         email_usado = Usuario.buscar_por_email(email)
         if email_usado:
             flash("Esse email já está sendo utilizado")
             return render_template("cadastro.html")
         
-        # cria novo usuário com senha SEM HASH
-        novo_usuario = Usuario(nome=nome, email=email, cpf=cpf, senha_hash=senha)
+        novo_usuario = Usuario(
+            nome=nome,
+            email=email,
+            cpf=cpf,
+            senha_hash=senha  # ideal seria usar hash depois
+        )
         
         db.session.add(novo_usuario)
         db.session.commit()
@@ -61,17 +70,15 @@ def login():
         email = request.form['email']
         senha = request.form['senha']
         
-        # usa o método buscar_por_email do BD
         usuario = Usuario.buscar_por_email(email)
         
-        # usa o método verificar_senha do BD
         if not usuario or not usuario.verificar_senha(senha):
             flash("Email ou senha incorretos")
             return redirect(url_for("login"))
         
         login_user(usuario)
         flash("Login realizado com sucesso!")
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 @login_required
