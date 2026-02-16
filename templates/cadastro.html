@@ -3,33 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./style.css">
+    
+    <!-- CSS CORRIGIDO -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
     <title>Criar Conta - SAI</title>
 </head> 
 <body>
     
     <header>
-        <h1 id="logo"><a href="index.html">SAI</a></h1>
+        <h1 id="logo">
+            <a href="{{ url_for('home') }}">SAI</a>
+        </h1>
+
         <nav>
             <ul>
-                <li><a href="index.html">Início</a></li>
-                <li><a href="/#recursos">Recursos</a></li>
-                <li><a href="/#comunidade">Comunidade</a></li>
-                <li><a href="/#suporte">Suporte</a></li>
+                <li><a href="{{ url_for('home') }}">Início</a></li>
+                <li><a href="{{ url_for('home') }}#recursos">Recursos</a></li>
+                <li><a href="{{ url_for('home') }}#comunidade">Comunidade</a></li>
+                <li><a href="{{ url_for('home') }}#suporte">Suporte</a></li>
             </ul>
         </nav>
+
         <div class="auth-buttons">
-            <a href="login.html" class="btn-entrar">Entrar</a>
-            <a href="cadastro.html" class="btn-criar">Criar Conta</a>
+            <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
+            <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
         </div>
     </header>
 
     <main class="main-login-cadastro">
         <div class="card-formulario">
             <h2>Crie sua conta</h2>
-            <p style="margin-bottom: 20px; color: #666;">Junte-se à nossa comunidade.</p>
+            <p style="margin-bottom: 20px; color: #666;">
+                Junte-se à nossa comunidade.
+            </p>
             
-            <form action="/cadastro" method="POST">
+            <form action="{{ url_for('cadastro') }}" method="POST">
+
+                {% if sucesso %}
+                <div class="mensagem-sucesso">
+                    Cadastro realizado com sucesso!
+                </div>
+                {% endif %}
+
+                {% if erro %}
+                <div class="mensagem-alerta">
+                    Este e-mail já está cadastrado!
+                </div>
+                {% endif %}
+
                 <input type="text" name="nome" class="form-input" placeholder="Nome Completo" required>
                 <input type="text" name="cpf" class="form-input" placeholder="CPF (somente números)" maxlength="11" required>
                 <input type="email" name="email" class="form-input" placeholder="Seu melhor E-mail" required>
@@ -38,7 +60,9 @@
                 <button type="submit" class="btn-submit">Cadastrar</button>
             </form>
 
-            <a href="login.html" class="link-extra">Já tem uma conta? Faça login.</a>
+            <a href="{{ url_for('login') }}" class="link-extra">
+                Já tem uma conta? Faça login.
+            </a>
         </div>
     </main>
 
