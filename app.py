@@ -55,7 +55,7 @@ def cadastro():
             cpf=cpf
         )
 
-novo_usuario.definir_senha(senha)
+        novo_usuario.definir_senha(senha)
         
         db.session.add(novo_usuario)
         db.session.commit()
