@@ -16,7 +16,7 @@ class Usuario(UserMixin, db.Model):
         return Usuario.query.filter_by(email=email_procurado).first()
 
     def definir_senha(self, senha):
-    self.senha_hash = generate_password_hash(senha)
+        self.senha_hash = generate_password_hash(senha)
     
     def verificar_senha(self, senha_digitada):
-    return check_password_hash(self.senha_hash, senha_digitada)
+        return check_password_hash(self.senha_hash, senha_digitada)
