@@ -52,9 +52,10 @@ def cadastro():
         novo_usuario = Usuario(
             nome=nome,
             email=email,
-            cpf=cpf,
-            senha_hash=senha
+            cpf=cpf
         )
+
+novo_usuario.definir_senha(senha)
         
         db.session.add(novo_usuario)
         db.session.commit()
