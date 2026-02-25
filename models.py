@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -13,6 +14,9 @@ class Usuario(UserMixin, db.Model):
     @staticmethod
     def buscar_por_email(email_procurado):
         return Usuario.query.filter_by(email=email_procurado).first()
+
+    def definir_senha(self, senha):
+    self.senha_hash = generate_password_hash(senha)
     
     def verificar_senha(self, senha_digitada):
-        return self.senha_hash == senha_digitada
+    return check_password_hash(self.senha_hash, senha_digitada)
