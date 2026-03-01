@@ -24,7 +24,7 @@
             </ul>
         </nav>
         <div class="auth-buttons">
-            <span class="usuario-ola">Painel de Gestão</span>
+           <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
             <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a> 
         </div>
     </header>

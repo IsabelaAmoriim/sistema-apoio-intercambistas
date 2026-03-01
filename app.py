@@ -81,7 +81,11 @@ def login():
     
     login_user(usuario)
     flash("Login realizado com sucesso!")
-    return redirect(url_for('dashboard'))
+    
+    if usuario.is_admin:
+        return redirect(url_for('admin_dashboard'))
+    else:
+        return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 @login_required
