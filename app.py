@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from models import db, Usuario, Pais
+from models import (
+    db, Usuario, Pais, Universidade,
+    Documento, DocumentoUsuario, seed_database
+    )
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///intercambio.db'
@@ -21,6 +24,8 @@ def load_user(id):
 # cria tabelas caso não existam
 with app.app_context():
     db.create_all()
+    #registra os admins
+    seed_database()
 
 @app.route("/")
 @app.route("/index")

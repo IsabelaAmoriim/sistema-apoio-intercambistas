@@ -30,6 +30,8 @@ class Pais(db.Model):
     __tablename__ = 'pais'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), unique=True, nullable=False)
+    iso = db.Column(db.String(2), unique=True)
+    desc = db.Column(db.String(500), nullable=True)
     
     # relacionamento com universidade
     universidades = db.relationship('Universidade', backref='pais_origem', lazy=True)
@@ -71,3 +73,26 @@ class DocumentoUsuario(db.Model):
     # caminho do arquivo guarda o endereço (diretório) da foto/documento
     caminho_arquivo = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Pendente")
+
+def seed_database():
+        admins = [
+            {"nome": "Admin Breno", "email": "breno@gmail.com", "cpf": "00000000000", "senha": "breno123"},
+            {"nome": "Admin Clara", "email": "clara@gmail.com", "cpf": "00000000001", "senha": "clara123"},
+            {"nome": "Admin Eduardo", "email": "eduardo@gmail.com", "cpf": "00000000002", "senha": "eduardo123"},
+            {"nome": "Admin Isabela", "email": "isabela@gmail.com", "cpf": "00000000003", "senha": "isabela123"},
+            {"nome": "Admin Patrick", "email": "patrick@gmail.com", "cpf": "00000000004", "senha": "patrick123"}
+        ]
+
+        for data in admins:
+            # Só cria se o email não estiver no banco
+            if not Usuario.query.filter_by(email=data["email"]).first():
+                novo_admin = Usuario(
+                    nome=data["nome"],
+                    email=data["email"],
+                    cpf=data["cpf"],
+                    senha_hash=generate_password_hash(data["senha"]),
+                    is_admin=True
+                )
+                db.session.add(novo_admin)
+        
+        db.session.commit()
