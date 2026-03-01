@@ -152,7 +152,9 @@ def cadastro_paises():
     if request.method == 'GET':
         return render_template("admin_cadastro_pais.html")  # MUDOU: cadastro_paises.html → admin_cadastro_pais.html
     
-    nome = request.form['nome'].strip().title()
+    nome = request.form['nome_pais'].strip().title()
+    iso = request.form['sigla_pais'].strip().upper()
+    desc = request.form['descricao'].strip()
     
     # verifica se país já existe
     nome_usado = Pais.buscar_por_nome(nome)
@@ -160,7 +162,11 @@ def cadastro_paises():
         flash("Esse país já está cadastrado")
         return redirect(url_for("paises_cadastrados"))
     
-    novo_pais = Pais(nome=nome)
+    novo_pais = Pais(
+        nome=nome,
+        iso=iso,
+        desc=desc
+    )
     db.session.add(novo_pais)
     db.session.commit()
     flash("País cadastrado com sucesso!")
