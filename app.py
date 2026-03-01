@@ -9,7 +9,7 @@ app.secret_key = "admins_grupo02_pds"
 
 db.init_app(app)
 
-# Configuração do flask-login
+# configuração do flask-login
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -18,7 +18,7 @@ login_manager.login_view = "login"
 def load_user(id):
     return Usuario.query.get(int(id))
 
-# criar tabelas caso não existam
+# cria tabelas caso não existam
 with app.app_context():
     db.create_all()
 
@@ -137,7 +137,7 @@ def admin_dashboard():
 @login_required
 def paises_cadastrados():
     paises = Pais.query.all()
-    return render_template("paises.html", paises=paises)
+    return render_template("admin_paises.html", paises=paises)  # MUDOU: paises.html → admin_paises.html
 
 @app.route("/cadastro_paises", methods=['GET', 'POST'])
 @login_required
@@ -147,7 +147,7 @@ def cadastro_paises():
         return redirect(url_for("paises_cadastrados"))
 
     if request.method == 'GET':
-        return render_template("cadastro_paises.html")
+        return render_template("admin_cadastro_pais.html")  # MUDOU: cadastro_paises.html → admin_cadastro_pais.html
     
     nome = request.form['nome'].strip().title()
     
@@ -176,7 +176,7 @@ def editar_paises(id):
         return redirect(url_for("paises_cadastrados"))
     
     if request.method == 'GET':
-        return render_template("editar_paises.html", paises=paises)
+        return render_template("admin_cadastro_pais.html", paises=paises)  # MUDOU: editar_paises.html → admin_cadastro_pais.html (reutiliza o mesmo)
     
     novo_nome = request.form["nome"].strip().title()
     nome_usado = Pais.buscar_por_nome(novo_nome)
@@ -184,7 +184,7 @@ def editar_paises(id):
     # verifica se o novo nome já existe (exceto se for o mesmo país)
     if nome_usado and nome_usado.id != paises.id:
         flash("Esse nome já pertence a um país cadastrado")
-        return render_template("editar_paises.html", paises=paises)
+        return render_template("admin_cadastro_pais.html", paises=paises)  # MUDOU
     
     paises.nome = novo_nome
     db.session.commit()
@@ -227,7 +227,7 @@ def admin_cadastro_pais():
         flash("Acesso negado. Apenas administradores podem acessar esta área.")
         return redirect(url_for("dashboard"))
     
-    # redireciona para a rota nova de cadastro
+    # redireciona pra rota nova de cadastro
     return redirect(url_for('cadastro_paises'))
 
 @app.route('/admin/universidade/novo', methods=['GET', 'POST'])
