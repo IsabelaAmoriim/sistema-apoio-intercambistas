@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Documento - SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+   <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+
+        <nav>
+        <ul>
+            <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+            <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+            <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+        </ul>
+    </nav>
+
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form">
+            <h2 class="titulo-form">Cadastrar Novo Documento</h2>
+            <form action="#" method="POST">
+                <div class="form-group">
+                    <label>Nome do Documento</label>
+                    <input type="text" placeholder="Ex: Passaporte, CPF..." required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select required>
+                        <option value="">Selecione...</option>
+                        <option value="identidade">Identidade</option>
+                        <option value="academico">Acadêmico</option>
+                        <option value="visto">Visto</option>
+                    </select>
+                </div>
+                <div class="form-group campo-arquivo">
+        <label>Arquivo (PDF ou Imagem)</label>
+        
+        <label for="arquivo_orig" class="custom-file-upload">
+            <i class="fas fa-cloud-upload-alt"></i> Escolher Arquivo
+        </label>
+        
+        <input type="file" id="arquivo_orig" name="arquivo" required onchange="mostrarNomeArquivo()">
+        
+        <span id="nome-arquivo-selecionado">Nenhum arquivo selecionado</span>
+    </div>
+                <button type="submit" class="btn-enviar">Fazer Upload</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

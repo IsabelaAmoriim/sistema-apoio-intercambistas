@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Regra de Documento - Admin SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_paises') }}">Listar Destinos</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Painel de Gestão</span>
+            <a href="{{ url_for('home') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form">
+            <h2 class="titulo-form">Cadastrar Documento Exigido</h2>
+            <p class="subtitulo" style="margin-bottom: 20px;">Adicione um novo documento à lista de obrigatoriedades do aluno.</p>
+            <form action="{{ url_for('admin_cadastro_documento') }}" method="POST">
+                <div class="form-group">
+                    <label>Nome do Documento</label>
+                    <input type="text" name="nome_doc" placeholder="Ex: Passaporte, Visto..." required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select name="categoria" required>
+                        <option value="">Selecione...</option>
+                        <option value="identidade">Identificação</option>
+                        <option value="academico">Acadêmico</option>
+                        <option value="imigracao">Imigração e Vistos</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-enviar">Adicionar ao Sistema</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

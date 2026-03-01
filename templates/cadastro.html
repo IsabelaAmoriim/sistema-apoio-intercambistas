@@ -17,14 +17,15 @@
             <a href="{{ url_for('home') }}">SAI</a>
         </h1>
 
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('home') }}">Início</a></li>
-                <li><a href="{{ url_for('home') }}#recursos">Recursos</a></li>
-                <li><a href="{{ url_for('home') }}#comunidade">Comunidade</a></li>
-                <li><a href="{{ url_for('home') }}#suporte">Suporte</a></li>
-            </ul>
-        </nav>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Início</a></li>
+                    <li><a href="{{ url_for('home') }}#recursos">Recursos</a></li>
+                    <li><a href="{{ url_for('paises') }}">Destinos</a></li>
+                    <li><a href="{{ url_for('home') }}#comunidade">Comunidade</a></li>
+                    <li><a href="{{ url_for('home') }}#suporte">Suporte</a></li>
+                </ul>
+            </nav>
 
         <div class="auth-buttons">
             <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>

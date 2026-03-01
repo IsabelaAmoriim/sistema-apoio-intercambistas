@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Painel do Aluno - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head> 
+<body>
+    
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+
+            <nav>
+        <ul>
+            <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+            <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+            <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+        </ul>
+    </nav>
+
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 class="titulo-secao">Meus Documentos</h2>
+        <p class="subtitulo">Abaixo estão os documentos necessários para o seu processo de intercâmbio.</p>
+
+        <a href="{{ url_for('cadastro_documento') }}" class="btn-novo-doc">
+            + Enviar Novo Documento
+        </a>
+
+        <div class="card-tabela">
+            {% if documentos %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>NOME DO ARQUIVO</th>
+                        <th>CATEGORIA</th>
+                        <th>STATUS</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documentos %}
+                    <tr>
+                        <td><strong>{{ doc.nome }}</strong></td>
+                        <td>{{ doc.tipo }}</td>
+                        <td>
+                            <span class="badge {{ doc.status_classe }}">
+                                {{ doc.status }}
+                            </span>
+                        </td>
+                        <td class="acoes">
+                            <a href="#" title="Baixar">📥</a>
+                            <a href="#" title="Excluir">🗑️</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; padding: 20px; color: #999;">
+                Nenhum documento encontrado. Clique em "Enviar Novo Documento" para começar.
+            </p>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

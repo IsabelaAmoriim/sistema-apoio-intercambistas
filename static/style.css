@@ -174,6 +174,7 @@ nav li:hover a {
     margin-bottom: 20px;
     font-family: "Playfair Display", serif;
 }
+
 .mensagem-alerta {
     background-color: #f8d7da;
     color: #721c24;
@@ -184,6 +185,7 @@ nav li:hover a {
     font-size: 0.9rem;
     text-align: center;
 }
+
 .form-input {
     width: 100%;
     padding: 12px;
@@ -229,4 +231,434 @@ nav li:hover a {
 .link-extra:hover {
     color: rgb(24, 6, 96);
     text-decoration: underline;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.secao-info {
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.cards-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.card, .card-suporte {
+    flex: 1;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.azul-claro {
+    background-color: #e3f2fd;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.dash-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 20px;
+}
+
+.dash-header h2 {
+    color: rgb(24, 6, 96);
+    font-family: "Playfair Display", serif;
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.dash-header p {
+    color: #555;
+    font-size: 1.1rem;
+}
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.dash-card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.dash-card:hover {
+    transform: translateY(-5px);
+}
+
+.dash-card h3 {
+    color: rgb(24, 6, 96);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+}
+
+.barra-progresso-fundo {
+    background-color: #eee;
+    border-radius: 10px;
+    height: 12px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.barra-progresso-cheia {
+    background-color: #28a745; 
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+.lista-tarefas {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+.lista-tarefas li {
+    padding: 8px 0;
+    color: #666;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.lista-tarefas li.feito {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.aviso-item {
+    background-color: #fff9e6; 
+    padding: 12px;
+    border-left: 4px solid #ffc107;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.aviso-item strong {
+    display: block;
+    color: #856404;
+}
+
+.aviso-item p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+}
+
+.botoes-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.btn-dash {
+    background-color: rgb(24, 6, 96);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-dash:hover {
+    background-color: rgb(40, 10, 150);
+}
+
+.usuario-ola {
+    color: whitesmoke;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.btn-sair {
+    color: #ff4d4d;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid #ff4d4d;
+    padding: 5px 15px;
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+
+.btn-sair:hover {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.container, .container-cadastro {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.titulo-secao, .titulo-form {
+    color: rgb(24, 6, 96);
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.subtitulo {
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.btn-novo-doc {
+    display: inline-block;
+    background-color: rgb(24, 6, 96);
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-novo-doc:hover {
+    background-color: rgb(40, 10, 150);
+    transform: translateY(-2px);
+}
+
+.card-tabela {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    text-align: left;
+    padding: 15px;
+    font-size: 12px;
+    color: rgb(95, 95, 95);
+    letter-spacing: 1px;
+    border-bottom: 2px solid rgb(238, 238, 238);
+}
+
+tbody td {
+    padding: 20px 15px;
+    border-bottom: 1px solid rgb(240, 240, 240);
+    color: #333;
+    font-size: 15px;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.validado {
+    background-color: rgb(232, 245, 233);
+    color: rgb(56, 142, 60);
+}
+
+.pendente {
+    background-color: rgb(255, 243, 224);
+    color: rgb(239, 108, 0);
+}
+
+.container-cadastro {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: auto;
+    padding: 40px 20px 40px 20px;
+}
+
+.card-form {
+    background-color: rgb(255, 255, 255);
+    width: 100%;
+    max-width: 550px; 
+    padding: 25px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.titulo-form {
+    color: rgb(26, 9, 99);
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(26, 9, 99);
+    margin-bottom: 5px;
+    margin-left: 5px;
+}
+
+.form-group input, 
+.form-group select,
+.custom-file-upload {
+    height: 48px;
+    box-sizing: border-box;
+}
+
+.form-group input, 
+.form-group select {
+    padding: 0 14px;
+    border: 1px solid rgb(224, 224, 224);
+    border-radius: 10px;
+    font-size: 16px;
+    background-color: rgb(255, 255, 255);
+    outline: none;
+    transition: 0.3s;
+}
+
+.form-group input:focus, 
+.form-group select:focus {
+    border-color: rgb(26, 9, 99);
+    box-shadow: 0 0 0 2px rgba(26, 9, 99, 0.1);
+}
+
+.btn-enviar {
+    background-color: rgb(26, 9, 99);
+    color: white;
+    height: 52px;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-enviar:hover {
+    background-color: rgb(49, 27, 146);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(26, 9, 99, 0.2);
+}
+
+#arquivo_orig {
+    display: none;
+}
+
+.custom-file-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(240, 240, 247);
+    color: rgb(26, 9, 99);
+    border-radius: 10px;
+    border: 2px dashed rgb(203, 213, 224);
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    transition: 0.3s;
+    text-align: center;
+    width: 100%;
+}
+
+.custom-file-upload:hover {
+    background-color: rgb(226, 226, 240);
+    border-color: rgb(26, 9, 99);
+    transform: translateY(-1px);
+}
+
+.custom-file-upload i {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+#nome-arquivo-selecionado {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: rgb(102, 102, 102);
+    font-style: italic;
+    text-align: center;
+}
+
+.dropdown {
+    position: relative; 
+}
+
+.submenu {
+    display: none !important; 
+    position: absolute;
+    top: 100%; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background-color: rgb(24, 6, 96); 
+    min-width: 220px;
+    padding: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    flex-direction: column; 
+    gap: 0; 
+}
+
+.dropdown:hover .submenu {
+    display: flex !important; 
+}
+
+.submenu li {
+    width: 100%;
+}
+
+.submenu li a {
+    display: block;
+    padding: 12px 20px;
+    text-align: center;
+    text-transform: none; 
+    font-size: 0.95rem;
+}
+
+.submenu li:hover {
+    transform: none; 
+    background-color: rgba(255, 255, 255, 0.1); 
 }
