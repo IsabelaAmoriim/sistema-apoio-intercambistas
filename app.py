@@ -109,12 +109,6 @@ def checklist():
 def forum():
     return render_template("forum.html")
 
-@app.route('/destinos')
-def paises():
-
-    return render_template('paises.html')
-    return render_template('paises.html', paises=paises_do_banco)
-
 @app.route('/admin')
 def admin_dashboard():
     return render_template('admin_dashboard.html')
