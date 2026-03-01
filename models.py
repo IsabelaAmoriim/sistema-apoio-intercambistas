@@ -11,13 +11,15 @@ class Usuario(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     cpf = db.Column(db.String(11), unique=True, nullable=False)
     senha_hash = db.Column(db.String(200), nullable=False)
-    #relacionamento para conexão da classe DocumentoUsuario
+    is_admin = db.Column(db.Boolean, default=False)
+    
+    # relacionamento pra classe DocumentoUsuario
     documentos_enviados = db.relationship('DocumentoUsuario', backref='dono_do_documento', lazy=True)
     
     @staticmethod
     def buscar_por_email(email_procurado):
         return Usuario.query.filter_by(email=email_procurado).first()
-
+    
     def definir_senha(self, senha):
         self.senha_hash = generate_password_hash(senha)
     
@@ -28,10 +30,20 @@ class Pais(db.Model):
     __tablename__ = 'pais'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), unique=True, nullable=False)
-    #relacionamento com Universidade
+    
+    # relacionamento com universidade
     universidades = db.relationship('Universidade', backref='pais_origem', lazy=True)
-    #relacionamento com Documentos
+    # relacionamento com documentos
     documentos_exigidos = db.relationship('Documento', backref='pais_pertencente', lazy=True)
+    
+    # métodos de busca adicionados
+    @staticmethod
+    def buscar_por_nome(nome_procurado):
+        return Pais.query.filter_by(nome=nome_procurado).first()
+    
+    @staticmethod
+    def buscar_por_id(id_procurado):
+        return Pais.query.filter_by(id=id_procurado).first()
 
 class Universidade(db.Model):
     __tablename__ = 'universidade'
@@ -46,19 +58,16 @@ class Documento(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.String(350), nullable=True)
     obrigatoriedade = db.Column(db.Boolean, default=True)
-    #Coluna que diz se o documento é geral (NULL/None) ou de um país específico
+    # diz se o documento é geral (null/none) ou de um país específico
     pais_id = db.Column(db.Integer, db.ForeignKey('pais.id'), nullable=True)
-    #relacionamento para conexão da classe DocumentoUsuario
+    # relacionamento pra classe DocumentoUsuario de novo
     envios_dos_alunos = db.relationship('DocumentoUsuario', backref='tipo_documento', lazy=True)
 
 class DocumentoUsuario(db.Model):
     __tablename__ = 'documento_usuario'
     id = db.Column(db.Integer, primary_key=True)
-
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     documento_id = db.Column(db.Integer, db.ForeignKey('documento.id'), nullable=False)
-
-    #caminho do arquivo guarda o endereço (diretório) da foto/documento
+    # caminho do arquivo guarda o endereço (diretório) da foto/documento
     caminho_arquivo = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Pendente")
-
