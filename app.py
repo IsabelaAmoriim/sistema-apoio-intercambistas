@@ -56,12 +56,6 @@ def cadastro():
     )
     novo_usuario.definir_senha(senha)
     
-    # define admins por e-mail
-    admins = ["patrick@gmail.com", "eduardo@gmail.com", "clara@gmail.com", 
-              "isabela@gmail.com", "breno@gmail.com"]
-    if email in admins:
-        novo_usuario.is_admin = True
-    
     db.session.add(novo_usuario)
     db.session.commit()
     
