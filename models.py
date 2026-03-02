@@ -35,8 +35,6 @@ class Pais(db.Model):
     
     # relacionamento com universidade
     universidades = db.relationship('Universidade', backref='pais_origem', lazy=True)
-    # relacionamento com documentos
-    documentos_exigidos = db.relationship('Documento', backref='pais_pertencente', lazy=True)
     
     # métodos de busca adicionados
     @staticmethod
@@ -74,6 +72,19 @@ class DocumentoUsuario(db.Model):
     caminho_arquivo = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Pendente")
 
+
+edital_universidade = db.Table(
+    'edital_universidade',
+    db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
+    db.Column('universidade_id', db.Integer, db.ForeignKey('universidade.id'), primary_key=True)
+)
+
+edital_documento = db.Table(
+    'edital_documento',
+    db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
+    db.Column('documento_id', db.Integer, db.ForeignKey('documento.id'), primary_key=True)
+)
+
 class Edital(db.Model):
     __tablename__ = 'edital'
     id = db.Column(db.Integer, primary_key=True)
@@ -85,14 +96,21 @@ class Edital(db.Model):
     data_ini_programa = db.Column(db.Date, nullable=False)
     data_fim_programa = db.Column(db.Date, nullable=False)
     vagas = db.Column(db.Integer, nullable=False)
-    
-    #relacionamento: O Edital contém as universidades selecionadas pelo Admin
-    universidades = db.relationship('Universidade', secondary=edital_universidade, backref='editais_participantes', lazy=True)
 
-edital_universidade = db.Table('edital_universidade',
-    db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
-    db.Column('universidade_id', db.Integer, db.ForeignKey('universidade.id'), primary_key=True)
-)
+    universidades = db.relationship(
+        'Universidade',
+        secondary=edital_universidade,
+        backref='editais_participantes',
+        lazy=True
+    )
+
+    documentos_exigidos = db.relationship(
+        'Documento',
+        secondary=edital_documento,
+        backref='editais_relacionados',
+        lazy=True
+    )
+
 
 def seed_database():
         admins = [
