@@ -338,7 +338,7 @@ def excluir_paises(id):
 
 @app.route('/admin/paises')
 @login_required
-def admin_listar_paises():
+def admin_listar_editais():
     if not current_user.is_admin:
         flash("Acesso negado. Apenas administradores podem acessar esta área.")
         return redirect(url_for("dashboard"))
