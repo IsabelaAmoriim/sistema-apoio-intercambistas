@@ -65,8 +65,14 @@
                     <tr>
                         <td><strong>{{ edital.titulo }}</strong></td>
                         <td>{{ edital.vagas }}</td>
-                        <td>{{ edital.data_limite }}</td>
-                        <td><span class="badge validado">Ativo</span></td>
+                        <td>{{ edital.data_fim_edital.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if edital.encerrado %}
+                                <span class="badge encerrado">Encerrado</span>
+                            {% else %}
+                                <span class="badge validado">Ativo</span>
+                            {% endif %}
+                        </td>
                         <td class="acoes">
                             <a href="{{ url_for('editar_edital', id=edital.id) }}" class="btn-emoji" title="Editar Edital">✏️</a>
                             
@@ -87,4 +93,5 @@
         </div>
     </main>
 </body>
+
 </html>
