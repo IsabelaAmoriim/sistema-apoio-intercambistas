@@ -74,6 +74,26 @@ class DocumentoUsuario(db.Model):
     caminho_arquivo = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Pendente")
 
+class Edital(db.Model):
+    __tablename__ = 'edital'
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    descricao = db.Column(db.String(500), nullable=True)
+    encerrado = db.Column(db.Boolean, default=False)
+    data_ini_edital = db.Column(db.Date, nullable=False)
+    data_fim_edital = db.Column(db.Date, nullable=False)
+    data_ini_programa = db.Column(db.Date, nullable=False)
+    data_fim_programa = db.Column(db.Date, nullable=False)
+    vagas = db.Column(db.Integer, nullable=False)
+    
+    #relacionamento: O Edital contém as universidades selecionadas pelo Admin
+    universidades = db.relationship('Universidade', secondary=edital_universidade, backref='editais_participantes', lazy=True)
+
+edital_universidade = db.Table('edital_universidade',
+    db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
+    db.Column('universidade_id', db.Integer, db.ForeignKey('universidade.id'), primary_key=True)
+)
+
 def seed_database():
         admins = [
             {"nome": "Admin Breno", "email": "breno@gmail.com", "cpf": "00000000000", "senha": "breno123"},
