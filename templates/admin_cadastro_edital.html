@@ -52,18 +52,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>País de Destino</label>
-                    <select name="pais_id" required>
-                        <option value="">Selecione o país...</option>
-                        {% for pais in paises %}
-                            <option value="{{ pais.id }}">{{ pais.nome }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label>Universidade Parceira</label>
-                    <select name="universidade_id" required>
+                    <select name="universidades" multiple required>
                         <option value="">Selecione a universidade...</option>
                         {% for uni in universidades %}
                             <option value="{{ uni.id }}">{{ uni.nome }}</option>
@@ -105,8 +95,8 @@
                     <div class="checkbox-group" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
                         {% for doc in documentos %}
                             <label style="font-weight: normal; display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" name="documentos_id" value="{{ doc.id }}">
-                                {{ doc.nome_doc }} ({{ doc.categoria }})
+                                <input type="checkbox" name="documentos" value="{{ doc.id }}">
+                                {{ doc.nome }}
                             </label>
                         {% else %}
                             <p style="font-size: 0.9em; color: #666;">Nenhum documento cadastrado no sistema.</p>
@@ -119,4 +109,5 @@
         </div>
     </main>
 </body>
+
 </html>
