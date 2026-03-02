@@ -1,4 +1,6 @@
 import os
+import uuid
+from datetime import datetime
 from werkzeug.utils import secure_filename
 
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
@@ -192,7 +194,6 @@ def cadastro_documento():
             return redirect(request.url)
 
         if ficheiro and arquivo_permitido(ficheiro.filename):
-            import uuid
 
             nome_original = secure_filename(ficheiro.filename)
             nome_unico = f"{uuid.uuid4()}_{nome_original}"
@@ -251,20 +252,14 @@ def admin_dashboard():
         return redirect(url_for("dashboard"))
     return render_template('admin_dashboard.html')
 
-# países
-
-@app.route("/paises_cadastrados")
-@login_required
-def paises_cadastrados():
-    paises = Pais.query.all()
-    return render_template("admin_paises.html", paises=paises)
+# países e cadastros gerais
 
 @app.route("/cadastro_paises", methods=['GET', 'POST'])
 @login_required
 def cadastro_paises():
     if not current_user.is_admin:
         flash("Apenas administradores podem realizar cadastros de países")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
 
     if request.method == 'GET':
         return render_template("admin_cadastro_pais.html")
@@ -277,7 +272,7 @@ def cadastro_paises():
     nome_usado = Pais.buscar_por_nome(nome)
     if nome_usado:
         flash("Esse país já está cadastrado")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
     
     novo_pais = Pais(
         nome=nome,
@@ -287,19 +282,19 @@ def cadastro_paises():
     db.session.add(novo_pais)
     db.session.commit()
     flash("País cadastrado com sucesso!")
-    return redirect(url_for("paises_cadastrados"))
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/editar_paises/<int:id>", methods=['GET', 'POST'])
 @login_required
 def editar_paises(id):
     if not current_user.is_admin:
         flash("Apenas administradores podem editar nomes de países")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
 
     paises = Pais.buscar_por_id(id)
     if not paises:
         flash("País não encontrado")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
     
     if request.method == 'GET':
         return render_template("admin_cadastro_pais.html", paises=paises)
@@ -315,35 +310,24 @@ def editar_paises(id):
     paises.nome = novo_nome
     db.session.commit()
     flash("Alteração bem sucedida!")
-    return redirect(url_for("paises_cadastrados"))
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/excluir_paises/<int:id>", methods=['POST'])
 @login_required
 def excluir_paises(id):
     if not current_user.is_admin:
         flash("Apenas administradores podem excluir países")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
 
     paises = Pais.buscar_por_id(id)
     if not paises:
         flash("País não encontrado")
-        return redirect(url_for("paises_cadastrados"))
+        return redirect(url_for("admin_dashboard"))
     
     db.session.delete(paises)
     db.session.commit()
     flash("País removido com sucesso!")
-    return redirect(url_for("paises_cadastrados"))
-
-# rotas antigas
-
-@app.route('/admin/paises')
-@login_required
-def admin_listar_editais():
-    if not current_user.is_admin:
-        flash("Acesso negado. Apenas administradores podem acessar esta área.")
-        return redirect(url_for("dashboard"))
-    
-    return redirect(url_for('paises_cadastrados'))
+    return redirect(url_for("admin_dashboard"))
 
 @app.route('/admin/pais/novo', methods=['GET', 'POST'])
 @login_required
@@ -414,6 +398,93 @@ def admin_cadastro_documento():
         return redirect(url_for('admin_dashboard'))
 
     return render_template("admin_cadastro_documento.html")
+
+
+# --- ROTAS DE EDITAIS ---
+
+@app.route('/admin/editais')
+@login_required
+def admin_listar_editais():
+    if not current_user.is_admin:
+        flash("Acesso negado.")
+        return redirect(url_for("dashboard"))
+    
+    editais_db = Edital.query.all()
+    return render_template('admin_edital.html', editais=editais_db)
+
+@app.route('/admin/cadastro_edital', methods=['GET', 'POST'])
+@login_required
+def admin_cadastro_edital():
+    if not current_user.is_admin:
+        flash("Acesso negado.")
+        return redirect(url_for("dashboard"))
+
+    if request.method == 'POST':
+        titulo = request.form.get('titulo').strip()
+        pais_id = request.form.get('pais_id')
+        universidade_id = request.form.get('universidade_id')
+        vagas = request.form.get('vagas')
+        
+        data_inicial_str = request.form.get('data_inicial')
+        data_limite_str = request.form.get('data_limite')
+        
+        # Converte as strings que vêm do HTML em objetos Date do Python
+        data_inicial = datetime.strptime(data_inicial_str, '%Y-%m-%d').date() if data_inicial_str else None
+        data_limite = datetime.strptime(data_limite_str, '%Y-%m-%d').date() if data_limite_str else None
+        
+        documentos_selecionados_ids = request.form.getlist('documentos_id')
+        
+        novo_edital = Edital(
+            titulo=titulo,
+            pais_id=pais_id,
+            universidade_id=universidade_id,
+            vagas=vagas,
+            data_inicial=data_inicial,
+            data_limite=data_limite
+        )
+        
+        # Adiciona os documentos ao edital
+        if documentos_selecionados_ids:
+            docs = Documento.query.filter(Documento.id.in_(documentos_selecionados_ids)).all()
+            novo_edital.documentos_exigidos.extend(docs)
+        
+        db.session.add(novo_edital)
+        db.session.commit() 
+        flash("Edital publicado com sucesso!")
+        return redirect(url_for('admin_listar_editais'))
+    
+    paises_db = Pais.query.all()
+    universidades_db = Universidade.query.all()
+    documentos_db = Documento.query.all()
+    
+    return render_template('admin_cadastro_edital.html', 
+                           paises=paises_db, 
+                           universidades=universidades_db, 
+                           documentos=documentos_db)
+
+@app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_edital(id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    
+    flash("A funcionalidade de edição de editais será implementada em breve.")
+    return redirect(url_for('admin_listar_editais'))
+
+@app.route('/admin/edital/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_edital(id):
+    if not current_user.is_admin:
+        return redirect(url_for("dashboard"))
+    
+    edital = Edital.query.get(id)
+    if edital:
+        db.session.delete(edital)
+        db.session.commit()
+        flash("Edital removido permanentemente!")
+        
+    return redirect(url_for('admin_listar_editais'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)

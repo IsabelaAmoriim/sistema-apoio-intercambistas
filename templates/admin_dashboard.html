@@ -1,68 +1,49 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cadastrar Universidade - Admin SAI</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    </head> 
-    <body>
-        <header>
-            <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('admin_listar_editais') }}">Listar Destinos</a></li>
-                    <li class="dropdown">
-                        <a href="#">Cadastros ▾</a>
-                        <ul class="submenu">
-                            <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
-                            <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
-                            <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </nav>
-            <div class="auth-buttons">
-                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
-                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
-            </div>
-        </header>
-
-        <main class="container-cadastro">
-            <div class="card-form">
-                <h2 class="titulo-form">Cadastrar Nova Universidade</h2>
-
-                    {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul class="alertas-container">
-                    {% for message in messages %}
-                    <li class="alerta-item">{{ message }}</li>
-                    {% endfor %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
                     </ul>
-                {% endif %}
-                {% endwith %}
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
 
-                <form action="{{ url_for('admin_cadastro_universidade') }}" method="POST">
-                    <div class="form-group">
-                        <label>Selecione o País de Destino</label>
-                        <select name="pais_id" required>
-                            <option value="">Escolha um país...</option>
-                            {% for pais in paises %}
-                                <option value="{{ pais.id }}">{{ pais.nome }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Nome da Instituição</label>
-                        <input type="text" name="nome" placeholder="Ex: Universidade de Coimbra" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Endereço</label>
-                        <input type="text" name="endereco" placeholder="Ex: Rua X, 123 - Coimbra" required>
-                    </div>
-                    <button type="submit" class="btn-enviar">Salvar Universidade</button>
-                </form>
-            </div>
-        </main>
-    </body>
-    </html>
+    <main class="dashboard-container" style="max-width: 1000px; margin: 40px auto; padding: 20px;">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="alertas-container">
+            {% for message in messages %}
+            <li class="alerta-item">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <section class="dash-header">
+            <h2>Gestão do Sistema SAI</h2>
+            <p>Bem-vindo(a) à área administrativa. Utilize o menu superior para gerir os dados do sistema.</p>
+        </section>
+    </main>
+</body>
+</html>
