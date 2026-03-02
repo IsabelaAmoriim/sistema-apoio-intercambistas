@@ -120,6 +120,12 @@ def lista_editais():
     editais = Edital.query.filter_by(encerrado=False).all()
     return render_template("lista_editais.html", editais=editais)
 
+@app.route("/edital/<int:id>")
+@login_required
+def ver_edital(id):
+    edital = Edital.query.get_or_404(id)
+    return render_template("detalhes_edital.html", edital=edital)
+
 @app.route("/documentos")
 @login_required
 def lista_documentos():
