@@ -70,7 +70,13 @@
                             {% if edital.encerrado %}
                                 <span class="badge encerrado">Encerrado</span>
                             {% else %}
-                                <span class="badge validado">Ativo</span>
+                                <td>
+                                    {% if edital.encerrado %}
+                                        <span class="badge encerrado">Encerrado</span>
+                                    {% else %}
+                                        <span class="badge validado">Ativo</span>
+                                    {% endif %}
+                                </td>
                             {% endif %}
                         </td>
                         <td class="acoes">
@@ -95,3 +101,4 @@
 </body>
 
 </html>
+
