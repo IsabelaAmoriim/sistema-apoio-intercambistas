@@ -48,7 +48,7 @@
                         <select name="id_pais" required>
                             <option value="">Escolha um país...</option>
                             {% for pais in paises %}
-                                <option value="{{ pais }}">{{ pais }}</option>
+                                <option value="{{ pais.nome }}">{{ pais.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
