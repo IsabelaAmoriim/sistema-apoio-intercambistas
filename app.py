@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import (
     db, Usuario, Pais, Universidade,
-    Documento, DocumentoUsuario, seed_database
+    Documento, DocumentoUsuario, seed_database, Edital
 )
 
 app = Flask(__name__)
@@ -122,7 +122,7 @@ def lista_documentos():
     # Envia essa lista real para o seu HTML
     return render_template("lista_documentos.html", documentos=meus_documentos)
 
-@app.route("/excluir-documento/<int:id>")
+@app.route("/excluir-documento/<int:id>", methods=["POST"])
 @login_required
 def excluir_documento(id):
 
@@ -192,8 +192,11 @@ def cadastro_documento():
             return redirect(request.url)
 
         if ficheiro and arquivo_permitido(ficheiro.filename):
-            nome_seguro = secure_filename(ficheiro.filename)
-            caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_seguro)
+            import uuid
+
+            nome_original = secure_filename(ficheiro.filename)
+            nome_unico = f"{uuid.uuid4()}_{nome_original}"
+            caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_unico)
             ficheiro.save(caminho_salvar)
 
             # 1. Tenta achar o Documento base no catálogo para pegar o ID
