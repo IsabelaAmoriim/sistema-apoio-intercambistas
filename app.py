@@ -125,22 +125,41 @@ def lista_documentos():
 @app.route("/excluir-documento/<int:id>")
 @login_required
 def excluir_documento(id):
-    # 1. Busca o documento no banco (garantindo que pertence ao usuário logado)
-    doc_para_excluir = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
-    
+
+    doc_para_excluir = DocumentoUsuario.query.filter_by(
+        id=id,
+        usuario_id=current_user.id
+    ).first()
+
     if doc_para_excluir:
-        # 2. Apaga o arquivo físico da pasta (se ele existir lá)
+
+        doc_base_id = doc_para_excluir.documento_id
+
+        # Apaga arquivo físico
         if doc_para_excluir.caminho_arquivo and os.path.exists(doc_para_excluir.caminho_arquivo):
             os.remove(doc_para_excluir.caminho_arquivo)
-            
-        # 3. Apaga o registro do banco de dados
+
+        # Remove envio do usuário
         db.session.delete(doc_para_excluir)
         db.session.commit()
+
+        # Verifica se esse Documento ainda está sendo usado
+        ainda_existe = DocumentoUsuario.query.filter_by(
+            documento_id=doc_base_id
+        ).first()
+
+        # Se ninguém mais usa, remove o Documento base
+        if not ainda_existe:
+            doc_base = Documento.query.get(doc_base_id)
+            if doc_base and doc_base.descricao == "Enviado pelo aluno":
+                db.session.delete(doc_base)
+                db.session.commit()
+
         flash("Documento excluído com sucesso!")
+
     else:
         flash("Erro: Documento não encontrado.")
-        
-    # Redireciona de volta para a tabela
+
     return redirect(url_for('lista_documentos'))
 
 @app.route("/baixar-documento/<int:id>")
