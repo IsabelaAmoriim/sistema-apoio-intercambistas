@@ -320,10 +320,10 @@ def admin_cadastro_edital():
         return redirect(url_for("dashboard"))
 
     if request.method == 'POST':
-        titulo = request.form.get('titulo').strip()
+        titulo = request.form.get('titulo', '').strip()
         pais_id = request.form.get('pais_id')
         universidade_id = request.form.get('universidade_id')
-        vagas = request.form.get('vagas')
+        vagas = int(request.form.get('vagas', 0))
         
         data_inicial_str = request.form.get('data_inicial')
         data_limite_str = request.form.get('data_limite')
