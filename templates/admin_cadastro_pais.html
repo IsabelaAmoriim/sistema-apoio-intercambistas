@@ -42,21 +42,39 @@
                 {% endif %}
                 {% endwith %}
 
-                <form action="{{ url_for('cadastro_paises') }}" method="POST">
-                    <div class="form-group">
-                        <label>Nome do País</label>
-                        <input type="text" name="nome_pais" placeholder="Ex: Portugal" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Sigla (Código ISO)</label>
-                        <input type="text" name="sigla_pais" placeholder="Ex: PT, US, CA" maxlength="3" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Descrição Curta</label>
-                        <input type="text" name="descricao" placeholder="Breve resumo do destino" required>
-                    </div>
-                    <button type="submit" class="btn-enviar">Salvar País</button>
-                </form>
+                <form method="POST"
+                          action="{% if paises %}{{ url_for('editar_paises', id=paises.id) }}{% else %}{{ url_for('cadastro_paises') }}{% endif %}">
+                    
+                        <div class="form-group">
+                            <label>Nome do País</label>
+                            <input type="text" name="{% if paises %}nome{% else %}nome_pais{% endif %}"
+                                   placeholder="Ex: Portugal"
+                                   value="{% if paises %}{{ paises.nome }}{% endif %}"
+                                   required>
+                        </div>
+                    
+                        <div class="form-group">
+                            <label>Sigla (Código ISO)</label>
+                            <input type="text" name="sigla_pais"
+                                   placeholder="Ex: PT, US, CA"
+                                   maxlength="3"
+                                   value="{% if paises %}{{ paises.iso }}{% endif %}"
+                                   required>
+                        </div>
+                    
+                        <div class="form-group">
+                            <label>Descrição Curta</label>
+                            <input type="text" name="descricao"
+                                   placeholder="Breve resumo do destino"
+                                   value="{% if paises %}{{ paises.desc }}{% endif %}"
+                                   required>
+                        </div>
+                    
+                        <button type="submit" class="btn-enviar">
+                            {% if paises %}Salvar Alterações{% else %}Salvar País{% endif %}
+                        </button>
+                    
+                    </form>
             </div>
         </main>
     </body>
