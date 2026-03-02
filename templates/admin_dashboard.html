@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+'<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -30,6 +30,15 @@
     </header>
 
     <main class="dashboard-container">
+            {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="alertas-container">
+        {% for message in messages %}
+        <li class="alerta-item">{{ message }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
         <section class="dash-header">
             <h2>Gestão do Sistema SAI</h2>
             <p>Bem-vindo(a) à área administrativa. Escolha uma tarefa rápida abaixo ou use o menu superior.</p>
@@ -50,4 +59,4 @@
         </div>
     </main>
 </body>
-</html>
+</html>'

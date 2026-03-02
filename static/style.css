@@ -219,7 +219,26 @@ nav li:hover a {
 .btn-submit:hover {
     background-color: rgb(40, 10, 150);
 }
+.btn-secundario {
+  display: inline-block;
+  background-color: rgb(0, 86, 179); 
+  color: rgb(255, 255, 255);
+  padding: 12px 28px;
+  font-family: sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px; 
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
+.btn-secundario:hover {
+  background-color: rgb(0, 68, 148);
+  transform: translateY(-2px); 
+  text-decoration: none;
+  color: rgb(255, 255, 255);
+}
 .link-extra {
     display: block;
     margin-top: 15px;
@@ -661,4 +680,65 @@ form {
 .submenu li:hover {
     transform: none; 
     background-color: rgba(255, 255, 255, 0.1); 
+}
+
+.alertas-container {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 auto 20px auto !important;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.alerta-item {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background-color: rgb(224, 231, 255); 
+    color: rgb(55, 48, 163); 
+    border-left: 5px solid rgb(79, 70, 229);
+}
+
+.acoes {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.acoes form {
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center;
+}
+
+.btn-emoji {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 22px !important;
+    cursor: pointer;
+    padding: 5px 8px !important;
+    border-radius: 8px;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    min-width: 35px;
+    min-height: 35px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-emoji:hover {
+    transform: scale(1.2); 
+    background-color: rgb(240, 240, 247) !important; 
+}
+
+.btn-excluir:hover {
+    background-color: rgb(254, 226, 226) !important; 
 }

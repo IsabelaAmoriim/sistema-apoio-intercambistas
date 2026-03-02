@@ -8,18 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head> 
 <body>
-    
     <header>
         <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
-
-            <nav>
-        <ul>
-            <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
-            <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
-            <li><a href="{{ url_for('forum') }}">Fórum</a></li>
-        </ul>
-    </nav>
-
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
         <div class="auth-buttons">
             <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
             <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
@@ -33,6 +30,16 @@
         <a href="{{ url_for('cadastro_documento') }}" class="btn-novo-doc">
             + Enviar Novo Documento
         </a>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                    <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
         <div class="card-tabela">
             {% if documentos %}
@@ -48,16 +55,16 @@
                 <tbody>
                     {% for doc in documentos %}
                     <tr>
-                        <td><strong>{{ doc.nome }}</strong></td>
-                        <td>{{ doc.tipo }}</td>
+                        <td><strong>{{ doc.tipo_documento.nome }}</strong></td>
+                        <td>{{ doc.tipo_documento.descricao or '-' }}</td>
                         <td>
-                            <span class="badge {{ doc.status_classe }}">
+                            <span class="badge {{ doc.status|lower|replace(' ', '-') }}">
                                 {{ doc.status }}
                             </span>
                         </td>
                         <td class="acoes">
-                            <a href="#" title="Baixar">📥</a>
-                            <a href="#" title="Excluir">🗑️</a>
+                            <a href="{{ url_for('baixar_documento', id=doc.id) }}" class="btn-emoji" title="Baixar Documento">📥</a>
+                            <button onclick="confirmarExclusao('{{ doc.id }}', '{{ doc.tipo_documento.nome }}')" class="btn-emoji btn-excluir" title="Excluir Documento">🗑️</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -70,5 +77,14 @@
             {% endif %}
         </div>
     </main>
+
+    <script>
+        function confirmarExclusao(docId, docNome) {
+            let confirmacao = confirm(`Tem certeza de que deseja excluir o documento "${docNome}" permanentemente?`);
+            if (confirmacao) {
+                window.location.href = `/excluir-documento/${docId}`;
+            }
+        }
+    </script>
 </body>
 </html>

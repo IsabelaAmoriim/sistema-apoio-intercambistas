@@ -1,76 +1,76 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fórum - SAI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* CSS REUTILIZADO E ADAPTADO PARA O FÓRUM */
-        .container-forum { display: flex; flex-direction: column; align-items: center; padding: 25px 20px; }
-        .header-forum { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .btn-novo-topico { background: #1a0963; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; }
-        
-        .card-forum { background: white; width: 100%; max-width: 800px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .topico-linha { display: grid; grid-template-columns: 1fr 150px 100px; padding: 15px; border-bottom: 1px solid #f0f0f0; align-items: center; }
-        .topico-linha:last-child { border-bottom: none; }
-        
-        .topico-info h3 { margin: 0; font-size: 16px; color: #1a0963; }
-        .topico-info p { margin: 5px 0 0; font-size: 12px; color: #888; }
-        .autor-info, .respostas-info { font-size: 13px; color: #666; text-align: center; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
-            <nav>
-        <ul>
-            <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
-            <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
-            <li><a href="{{ url_for('forum') }}">Fórum</a></li>
-        </ul>
-    </nav>
-        <div class="auth-buttons">
-            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
-            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
-        </div>
-    </header>
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fórum - SAI</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <style>
+            /* CSS REUTILIZADO E ADAPTADO PARA O FÓRUM */
+            .container-forum { display: flex; flex-direction: column; align-items: center; padding: 25px 20px; }
+            .header-forum { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+            .btn-novo-topico { background: #1a0963; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; }
+            
+            .card-forum { background: white; width: 100%; max-width: 800px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+            .topico-linha { display: grid; grid-template-columns: 1fr 150px 100px; padding: 15px; border-bottom: 1px solid #f0f0f0; align-items: center; }
+            .topico-linha:last-child { border-bottom: none; }
+            
+            .topico-info h3 { margin: 0; font-size: 16px; color: #1a0963; }
+            .topico-info p { margin: 5px 0 0; font-size: 12px; color: #888; }
+            .autor-info, .respostas-info { font-size: 13px; color: #666; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+                <nav>
+            <ul>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+            <div class="auth-buttons">
+                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+            </div>
+        </header>
 
-    <main class="container-forum">
-        <div class="header-forum">
-            <h2 style="color: #1a0963; margin: 0;">Fórum de Discussão</h2>
-            <a href="#" class="btn-novo-topico">+ Novo Tópico</a>
-        </div>
-
-        <div class="card-forum">
-            <div class="topico-linha">
-                <div class="topico-info">
-                    <h3>Dicas para o Visto Americano</h3>
-                    <p>Postado há 2 horas por João Silva</p>
-                </div>
-                <div class="autor-info">Último: Maria Oliveira</div>
-                <div class="respostas-info">12 respostas</div>
+        <main class="container-forum">
+            <div class="header-forum">
+                <h2 style="color: #1a0963; margin: 0;">Fórum de Discussão</h2>
+                <a href="#" class="btn-novo-topico">+ Novo Tópico</a>
             </div>
 
-            <div class="topico-linha">
-                <div class="topico-info">
-                    <h3>Moradia em Portugal: Onde procurar?</h3>
-                    <p>Postado há 5 horas por Clara Magalhães</p>
+            <div class="card-forum">
+                <div class="topico-linha">
+                    <div class="topico-info">
+                        <h3>Dicas para o Visto Americano</h3>
+                        <p>Postado há 2 horas por João Silva</p>
+                    </div>
+                    <div class="autor-info">Último: Maria Oliveira</div>
+                    <div class="respostas-info">12 respostas</div>
                 </div>
-                <div class="autor-info">Último: Pedro Santos</div>
-                <div class="respostas-info">8 respostas</div>
-            </div>
 
-            <div class="topico-linha">
-                <div class="topico-info">
-                    <h3>Dúvidas sobre o Seguro Saúde</h3>
-                    <p>Postado ontem por Ricardo Lima</p>
+                <div class="topico-linha">
+                    <div class="topico-info">
+                        <h3>Moradia em Portugal: Onde procurar?</h3>
+                        <p>Postado há 5 horas por Clara Magalhães</p>
+                    </div>
+                    <div class="autor-info">Último: Pedro Santos</div>
+                    <div class="respostas-info">8 respostas</div>
                 </div>
-                <div class="autor-info">Último: Ana Costa</div>
-                <div class="respostas-info">3 respostas</div>
+
+                <div class="topico-linha">
+                    <div class="topico-info">
+                        <h3>Dúvidas sobre o Seguro Saúde</h3>
+                        <p>Postado ontem por Ricardo Lima</p>
+                    </div>
+                    <div class="autor-info">Último: Ana Costa</div>
+                    <div class="respostas-info">3 respostas</div>
+                </div>
             </div>
-        </div>
-    </main>
-</body>
-</html>
+        </main>
+    </body>
+    </html>

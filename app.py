@@ -1,14 +1,27 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+import os
+from werkzeug.utils import secure_filename
+
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import (
     db, Usuario, Pais, Universidade,
     Documento, DocumentoUsuario, seed_database
-    )
+)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///intercambio.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "admins_grupo02_pds"
+
+PASTA_UPLOADS = 'uploads/documentos'
+app.config['UPLOAD_FOLDER'] = PASTA_UPLOADS
+EXTENSOES_PERMITIDAS = {'pdf', 'png', 'jpg', 'jpeg'}
+
+os.makedirs(PASTA_UPLOADS, exist_ok=True)
+
+def arquivo_permitido(nome_arquivo):
+    return '.' in nome_arquivo and \
+           nome_arquivo.rsplit('.', 1)[1].lower() in EXTENSOES_PERMITIDAS
 
 db.init_app(app)
 
@@ -103,15 +116,97 @@ def dashboard():
 @app.route("/documentos")
 @login_required
 def lista_documentos():
-    docs_teste = [
-        {'nome': 'Passaporte.pdf', 'tipo': 'Identidade', 'status': 'Validado', 'status_classe': 'validado'},
-        {'nome': 'Historico_Escolar.pdf', 'tipo': 'Acadêmico', 'status': 'Em Análise', 'status_classe': 'pendente'},
-    ]
-    return render_template("lista_documentos.html", documentos=docs_teste)
+    # Busca na base de dados TODOS os documentos que pertencem ao utilizador logado
+    meus_documentos = DocumentoUsuario.query.filter_by(usuario_id=current_user.id).all()
+    
+    # Envia essa lista real para o seu HTML
+    return render_template("lista_documentos.html", documentos=meus_documentos)
 
-@app.route("/cadastro-documento")
+@app.route("/excluir-documento/<int:id>")
+@login_required
+def excluir_documento(id):
+    # 1. Busca o documento no banco (garantindo que pertence ao usuário logado)
+    doc_para_excluir = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
+    
+    if doc_para_excluir:
+        # 2. Apaga o arquivo físico da pasta (se ele existir lá)
+        if doc_para_excluir.caminho_arquivo and os.path.exists(doc_para_excluir.caminho_arquivo):
+            os.remove(doc_para_excluir.caminho_arquivo)
+            
+        # 3. Apaga o registro do banco de dados
+        db.session.delete(doc_para_excluir)
+        db.session.commit()
+        flash("Documento excluído com sucesso!")
+    else:
+        flash("Erro: Documento não encontrado.")
+        
+    # Redireciona de volta para a tabela
+    return redirect(url_for('lista_documentos'))
+
+@app.route("/baixar-documento/<int:id>")
+@login_required
+def baixar_documento(id):
+    doc_para_baixar = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
+    
+    if doc_para_baixar and doc_para_baixar.caminho_arquivo and os.path.exists(doc_para_baixar.caminho_arquivo):
+        return send_file(doc_para_baixar.caminho_arquivo, as_attachment=True)
+    else:
+        flash("Erro: O arquivo físico não foi encontrado no servidor.")
+        return redirect(url_for('lista_documentos'))
+
+@app.route("/cadastro-documento", methods=['GET', 'POST'])
 @login_required
 def cadastro_documento():
+    if request.method == 'POST':
+        # Verifica se o ficheiro veio no formulário
+        if 'arquivo' not in request.files:
+            flash('Nenhum ficheiro recebido.')
+            return redirect(request.url)
+        
+        ficheiro = request.files['arquivo']
+        
+        # Pega o nome que o aluno digitou
+        nome_documento = request.form.get('nome') 
+
+        if ficheiro.filename == '':
+            flash('Nenhum ficheiro selecionado.')
+            return redirect(request.url)
+
+        if ficheiro and arquivo_permitido(ficheiro.filename):
+            nome_seguro = secure_filename(ficheiro.filename)
+            caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_seguro)
+            ficheiro.save(caminho_salvar)
+
+            # 1. Tenta achar o Documento base no catálogo para pegar o ID
+            doc_base = Documento.query.filter_by(nome=nome_documento).first()
+            
+            # Se o documento não existir no sistema, cria um temporário
+            if not doc_base:
+                if not nome_documento:
+                    nome_documento = "Documento sem nome"
+                    
+                doc_base = Documento(nome=nome_documento, descricao="Enviado pelo aluno")
+                db.session.add(doc_base)
+                db.session.flush() # Salva temporariamente para gerar o doc_base.id
+                
+            # 2. Agora sim registramos o arquivo associado ao aluno logado
+            novo_envio = DocumentoUsuario(
+                usuario_id=current_user.id,
+                documento_id=doc_base.id, 
+                caminho_arquivo=caminho_salvar,
+                status='Em Análise' 
+            )
+            
+            db.session.add(novo_envio)
+            db.session.commit()
+
+            flash('Documento enviado com sucesso!')
+            return redirect(url_for('lista_documentos'))
+        
+        else:
+            flash('Tipo de ficheiro não suportado. Envie apenas PDF ou Imagens.')
+            return redirect(request.url)
+            
     return render_template("cadastro_documento.html")
 
 @app.route("/checklist")
@@ -140,7 +235,7 @@ def admin_dashboard():
 @login_required
 def paises_cadastrados():
     paises = Pais.query.all()
-    return render_template("admin_paises.html", paises=paises)  # MUDOU: paises.html → admin_paises.html
+    return render_template("admin_paises.html", paises=paises)
 
 @app.route("/cadastro_paises", methods=['GET', 'POST'])
 @login_required
@@ -150,7 +245,7 @@ def cadastro_paises():
         return redirect(url_for("paises_cadastrados"))
 
     if request.method == 'GET':
-        return render_template("admin_cadastro_pais.html")  # MUDOU: cadastro_paises.html → admin_cadastro_pais.html
+        return render_template("admin_cadastro_pais.html")
     
     nome = request.form['nome_pais'].strip().title()
     iso = request.form['sigla_pais'].strip().upper()
@@ -185,7 +280,7 @@ def editar_paises(id):
         return redirect(url_for("paises_cadastrados"))
     
     if request.method == 'GET':
-        return render_template("admin_cadastro_pais.html", paises=paises)  # MUDOU: editar_paises.html → admin_cadastro_pais.html (reutiliza o mesmo)
+        return render_template("admin_cadastro_pais.html", paises=paises)
     
     novo_nome = request.form["nome"].strip().title()
     nome_usado = Pais.buscar_por_nome(novo_nome)
@@ -193,7 +288,7 @@ def editar_paises(id):
     # verifica se o novo nome já existe (exceto se for o mesmo país)
     if nome_usado and nome_usado.id != paises.id:
         flash("Esse nome já pertence a um país cadastrado")
-        return render_template("admin_cadastro_pais.html", paises=paises)  # MUDOU
+        return render_template("admin_cadastro_pais.html", paises=paises)
     
     paises.nome = novo_nome
     db.session.commit()
@@ -226,7 +321,6 @@ def admin_listar_paises():
         flash("Acesso negado. Apenas administradores podem acessar esta área.")
         return redirect(url_for("dashboard"))
     
-    # redireciona para a rota nova de países
     return redirect(url_for('paises_cadastrados'))
 
 @app.route('/admin/pais/novo', methods=['GET', 'POST'])
@@ -236,7 +330,6 @@ def admin_cadastro_pais():
         flash("Acesso negado. Apenas administradores podem acessar esta área.")
         return redirect(url_for("dashboard"))
     
-    # redireciona pra rota nova de cadastro
     return redirect(url_for('cadastro_paises'))
 
 @app.route('/admin/universidade/novo', methods=['GET', 'POST'])
@@ -250,7 +343,6 @@ def admin_cadastro_universidade():
         flash('Universidade cadastrada com sucesso!')
         return redirect(url_for('admin_dashboard'))
     
-    # pega países do banco de dados em vez de lista hardcoded
     paises = Pais.query.all()
     return render_template('admin_cadastro_universidade.html', paises=paises)
 

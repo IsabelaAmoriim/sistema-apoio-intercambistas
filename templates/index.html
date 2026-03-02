@@ -1,103 +1,103 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Sistema de Apoio a Intercambistas</title>
-</head> 
-<body>
-    
-<header>
-    <h1 id="logo">
-        <a href="{{ url_for('home') }}">SAI</a>
-    </h1>
-
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('home') }}">Início</a></li>
-                <li><a href="#recursos">Recursos</a></li>
-                <li><a href="#comunidade">Comunidade</a></li>
-                <li><a href="#suporte">Suporte</a></li>
-            </ul>
-        </nav>
-
-    <div class="auth-buttons">
-        <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
-        <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
-    </div>
-</header>
-
-<main>
-    <div class="banner-principal">
-        <img src="{{ url_for('static', filename='young-friends-park.jpg') }}" alt="banner principal do sai">
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <title>Sistema de Apoio a Intercambistas</title>
+    </head> 
+    <body>
         
-        <div class="banner-overlay">
-            <h1>Sua jornada internacional começa aqui.</h1>
-            <p>O apoio que você precisa para viver a melhor experiência de intercâmbio sem preocupações.</p>
-            <a href="{{ url_for('cadastro') }}" class="botao-acao">Começar Agora</a>
-        </div>
-    </div>
+    <header>
+        <h1 id="logo">
+            <a href="{{ url_for('home') }}">SAI</a>
+        </h1>
 
-<section id="recursos" class="secao-info">
-        <div class="container">
-            <h2>Recursos para sua Jornada</h2>
-            <div class="cards-grid">
-                <div class="card">
-                    <h3>📋 Checklist Interativo</h3>
-                    <p>Organize passaportes, vistos e seguros de forma simples para não esquecer nada importante.</p>
-                </div>
-                <div class="card">
-                    <h3>💰 Calculadora Financeira</h3>
-                    <p>Planeje seu orçamento comparando o custo de vida entre sua cidade atual e o destino desejado.</p>
-                </div>
-                <div class="card">
-                    <h3>📍 Mapa de Acolhimento</h3>
-                    <p>Encontre redes de apoio brasileiras, hospitais e embaixadas em tempo real durante sua estadia.</p>
-                </div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('home') }}">Início</a></li>
+                    <li><a href="#recursos">Recursos</a></li>
+                    <li><a href="#comunidade">Comunidade</a></li>
+                    <li><a href="#suporte">Suporte</a></li>
+                </ul>
+            </nav>
+
+        <div class="auth-buttons">
+            <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
+            <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="banner-principal">
+            <img src="{{ url_for('static', filename='young-friends-park.jpg') }}" alt="banner principal do sai">
+            
+            <div class="banner-overlay">
+                <h1>Sua jornada internacional começa aqui.</h1>
+                <p>O apoio que você precisa para viver a melhor experiência de intercâmbio sem preocupações.</p>
+                <a href="{{ url_for('cadastro') }}" class="botao-acao">Começar Agora</a>
             </div>
         </div>
-    </section>
 
-    <section id="comunidade" class="secao-info destaque-comunidade">
-        <div class="container">
-            <h2>Comunidade SAI</h2>
-            <div class="conteudo-comunidade">
-                <h3>Conecte-se com o Mundo</h3>
-                <p>Participe de fóruns exclusivos, troque experiências com quem já voltou e encontre mentorias de veteranos que conhecem o caminho das pedras.</p>
-                <a href="{{ url_for('cadastro') }}" class="btn-secundario">Explorar Fóruns</a>
-            </div>
-        </div>
-    </section>
-
-    <section id="suporte" class="secao-info">
-        <div class="container">
-            <h2>Suporte e Segurança</h2>
-            <div class="cards-grid">
-                <div class="card-suporte">
-                    <h3>🚑 Emergência</h3>
-                    <p>Acesso rápido a contatos críticos e orientações de segurança internacional.</p>
-                </div>
-                <div class="card-suporte">
-                    <h3>💬 Chat de Ajuda</h3>
-                    <p>Nossa equipe está disponível para tirar dúvidas sobre o uso do sistema.</p>
-                </div>
-                <div class="card-suporte">
-                    <h3>❓ FAQ</h3>
-                    <p>Respostas diretas para as perguntas mais comuns sobre o processo de intercâmbio.</p>
+    <section id="recursos" class="secao-info">
+            <div class="container">
+                <h2>Recursos para sua Jornada</h2>
+                <div class="cards-grid">
+                    <div class="card">
+                        <h3>📋 Checklist Interativo</h3>
+                        <p>Organize passaportes, vistos e seguros de forma simples para não esquecer nada importante.</p>
+                    </div>
+                    <div class="card">
+                        <h3>💰 Calculadora Financeira</h3>
+                        <p>Planeje seu orçamento comparando o custo de vida entre sua cidade atual e o destino desejado.</p>
+                    </div>
+                    <div class="card">
+                        <h3>📍 Mapa de Acolhimento</h3>
+                        <p>Encontre redes de apoio brasileiras, hospitais e embaixadas em tempo real durante sua estadia.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <section id="comunidade" class="secao-info destaque-comunidade">
+            <div class="container">
+                <h2>Comunidade SAI</h2>
+                <div class="conteudo-comunidade">
+                    <h3>Conecte-se com o Mundo</h3>
+                    <p>Participe de fóruns exclusivos, troque experiências com quem já voltou e encontre mentorias de veteranos que conhecem o caminho das pedras.</p>
+                    <a href="{{ url_for('cadastro') }}" class="btn-secundario">Explorar Fóruns</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="suporte" class="secao-info">
+            <div class="container">
+                <h2>Suporte e Segurança</h2>
+                <div class="cards-grid">
+                    <div class="card-suporte">
+                        <h3>🚑 Emergência</h3>
+                        <p>Acesso rápido a contatos críticos e orientações de segurança internacional.</p>
+                    </div>
+                    <div class="card-suporte">
+                        <h3>💬 Chat de Ajuda</h3>
+                        <p>Nossa equipe está disponível para tirar dúvidas sobre o uso do sistema.</p>
+                    </div>
+                    <div class="card-suporte">
+                        <h3>❓ FAQ</h3>
+                        <p>Respostas diretas para as perguntas mais comuns sobre o processo de intercâmbio.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
 
-    <footer>
-        <p>&copy; 2026 SAI - Sistema de Apoio a Intercambistas.</p>
-    </footer>
-</main>
+        <footer>
+            <p>&copy; 2026 SAI - Sistema de Apoio a Intercambistas.</p>
+        </footer>
+    </main>
 
-</body>
-</html>
+    </body>
+    </html>
 
 
 

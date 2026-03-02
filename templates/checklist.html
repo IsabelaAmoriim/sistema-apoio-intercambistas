@@ -1,80 +1,80 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checklist - SAI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* CSS REUTILIZADO E AJUSTADO PARA CHECKLIST */
-        .container-checklist { display: flex; justify-content: center; align-items: flex-start; padding: 25px 20px; }
-        .card-checklist { background: white; width: 100%; max-width: 650px; padding: 20px 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .titulo-checklist { color: #1a0963; font-size: 22px; margin-bottom: 15px; text-align: center; }
-        
-        .item-checklist { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item-checklist:last-child { border-bottom: none; }
-        .info-tarefa { display: flex; align-items: center; gap: 15px; }
-        .info-tarefa i { color: #1a0963; font-size: 18px; }
-        .nome-tarefa { font-size: 15px; color: #333; font-weight: 500; }
-        
-        .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .concluido { background: #e8f5e9; color: #2e7d32; }
-        .pendente { background: #fff3e0; color: #ef6c00; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
-            <nav>
-        <ul>
-            <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
-            <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
-            <li><a href="{{ url_for('forum') }}">Fórum</a></li>
-        </ul>
-    </nav>
-        <div class="auth-buttons">
-            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
-            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
-        </div>
-    </header>
-
-    <main class="container-checklist">
-        <div class="card-checklist">
-            <h2 class="titulo-checklist">Meu Progresso</h2>
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Checklist - SAI</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <style>
+            /* CSS REUTILIZADO E AJUSTADO PARA CHECKLIST */
+            .container-checklist { display: flex; justify-content: center; align-items: flex-start; padding: 25px 20px; }
+            .card-checklist { background: white; width: 100%; max-width: 650px; padding: 20px 35px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+            .titulo-checklist { color: #1a0963; font-size: 22px; margin-bottom: 15px; text-align: center; }
             
-            <div class="item-checklist">
-                <div class="info-tarefa">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="nome-tarefa">Cadastro no Sistema</span>
-                </div>
-                <span class="badge-status concluido">Concluído</span>
+            .item-checklist { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+            .item-checklist:last-child { border-bottom: none; }
+            .info-tarefa { display: flex; align-items: center; gap: 15px; }
+            .info-tarefa i { color: #1a0963; font-size: 18px; }
+            .nome-tarefa { font-size: 15px; color: #333; font-weight: 500; }
+            
+            .badge-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+            .concluido { background: #e8f5e9; color: #2e7d32; }
+            .pendente { background: #fff3e0; color: #ef6c00; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+                <nav>
+            <ul>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+            <div class="auth-buttons">
+                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
             </div>
+        </header>
 
-            <div class="item-checklist">
-                <div class="info-tarefa">
-                    <i class="fas fa-file-alt"></i>
-                    <span class="nome-tarefa">Envio de Documentos Iniciais</span>
+        <main class="container-checklist">
+            <div class="card-checklist">
+                <h2 class="titulo-checklist">Meu Progresso</h2>
+                
+                <div class="item-checklist">
+                    <div class="info-tarefa">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="nome-tarefa">Cadastro no Sistema</span>
+                    </div>
+                    <span class="badge-status concluido">Concluído</span>
                 </div>
-                <span class="badge-status concluido">Concluído</span>
-            </div>
 
-            <div class="item-checklist">
-                <div class="info-tarefa">
-                    <i class="fas fa-passport"></i>
-                    <span class="nome-tarefa">Solicitação de Visto</span>
+                <div class="item-checklist">
+                    <div class="info-tarefa">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="nome-tarefa">Envio de Documentos Iniciais</span>
+                    </div>
+                    <span class="badge-status concluido">Concluído</span>
                 </div>
-                <span class="badge-status pendente">Pendente</span>
-            </div>
 
-            <div class="item-checklist">
-                <div class="info-tarefa">
-                    <i class="fas fa-plane-departure"></i>
-                    <span class="nome-tarefa">Compra das Passagens</span>
+                <div class="item-checklist">
+                    <div class="info-tarefa">
+                        <i class="fas fa-passport"></i>
+                        <span class="nome-tarefa">Solicitação de Visto</span>
+                    </div>
+                    <span class="badge-status pendente">Pendente</span>
                 </div>
-                <span class="badge-status pendente">Aguardando</span>
+
+                <div class="item-checklist">
+                    <div class="info-tarefa">
+                        <i class="fas fa-plane-departure"></i>
+                        <span class="nome-tarefa">Compra das Passagens</span>
+                    </div>
+                    <span class="badge-status pendente">Aguardando</span>
+                </div>
             </div>
-        </div>
-    </main>
-</body>
-</html>
+        </main>
+    </body>
+    </html>
