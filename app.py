@@ -114,6 +114,12 @@ def logout():
 def dashboard():
     return render_template("dashboard.html")
 
+@app.route("/editais")
+@login_required
+def lista_editais():
+    editais = Edital.query.filter_by(encerrado=False).all()
+    return render_template("lista_editais.html", editais=editais)
+
 @app.route("/documentos")
 @login_required
 def lista_documentos():
