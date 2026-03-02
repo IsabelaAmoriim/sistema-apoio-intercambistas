@@ -336,28 +336,28 @@ def admin_cadastro_pais():
 @login_required
 def admin_cadastro_universidade():
     if not current_user.is_admin:
-        flash("Acesso negado. Apenas administradores podem acessar esta área.")
+        flash("Acesso negado.")
         return redirect(url_for("dashboard"))
-    
+
     if request.method == 'POST':
+        nome = request.form['nome'].strip().title()
+        endereco = request.form['endereco'].strip()
+        pais_id = request.form['pais_id']
+
+        nova_universidade = Universidade(
+            nome=nome,
+            endereco=endereco,
+            pais_id=pais_id
+        )
+
+        db.session.add(nova_universidade)
+        db.session.commit()
+
         flash('Universidade cadastrada com sucesso!')
         return redirect(url_for('admin_dashboard'))
-    
+
     paises = Pais.query.all()
     return render_template('admin_cadastro_universidade.html', paises=paises)
-
-@app.route('/admin/documento/novo', methods=['GET', 'POST'])
-@login_required
-def admin_cadastro_documento():
-    if not current_user.is_admin:
-        flash("Acesso negado. Apenas administradores podem acessar esta área.")
-        return redirect(url_for("dashboard"))
-    
-    if request.method == 'POST':
-        flash('Novo documento obrigatório cadastrado com sucesso!')
-        return redirect(url_for('admin_dashboard'))
-    
-    return render_template('admin_cadastro_documento.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
