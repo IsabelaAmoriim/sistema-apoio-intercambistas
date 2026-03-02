@@ -359,5 +359,39 @@ def admin_cadastro_universidade():
     paises = Pais.query.all()
     return render_template('admin_cadastro_universidade.html', paises=paises)
 
+@app.route('/admin/documento/novo', methods=['GET', 'POST'])
+@login_required
+def admin_cadastro_documento():
+    if not current_user.is_admin:
+        flash("Acesso negado.")
+        return redirect(url_for("dashboard"))
+
+    if request.method == 'POST':
+        nome = request.form.get('nome_doc', '').strip().title()
+        categoria = request.form.get('categoria', '').strip()
+
+        if not nome or not categoria:
+            flash("Preencha todos os campos.")
+            return redirect(url_for('admin_cadastro_documento'))
+
+        # verifica se já existe
+        doc_existente = Documento.query.filter_by(nome=nome).first()
+        if doc_existente:
+            flash("Esse documento já está cadastrado.")
+            return redirect(url_for('admin_cadastro_documento'))
+
+        novo_doc = Documento(
+            nome=nome,
+            descricao=categoria
+        )
+
+        db.session.add(novo_doc)
+        db.session.commit()
+
+        flash("Documento cadastrado com sucesso!")
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template("admin_cadastro_documentos.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
