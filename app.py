@@ -366,11 +366,51 @@ def admin_cadastro_edital():
 
 @app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
+@app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
 def editar_edital(id):
     if not current_user.is_admin:
+        flash("Acesso negado.")
         return redirect(url_for("dashboard"))
-    flash("A funcionalidade de edição de editais será implementada em breve.")
-    return redirect(url_for('admin_listar_editais'))
+
+    edital = Edital.query.get_or_404(id)
+
+    if request.method == 'POST':
+        edital.titulo = request.form.get('titulo', '').strip()
+        edital.vagas = int(request.form.get('vagas', 0))
+
+        data_inicial_str = request.form.get('data_inicial')
+        data_limite_str = request.form.get('data_limite')
+        data_ini_inter_str = request.form.get('data_inicial_intercambio')
+        data_lim_inter_str = request.form.get('data_limite_intercambio')
+
+        edital.data_ini_edital = datetime.strptime(data_inicial_str, '%Y-%m-%d').date() if data_inicial_str else None
+        edital.data_fim_edital = datetime.strptime(data_limite_str, '%Y-%m-%d').date() if data_limite_str else None
+        edital.data_ini_programa = datetime.strptime(data_ini_inter_str, '%Y-%m-%d').date() if data_ini_inter_str else None
+        edital.data_fim_programa = datetime.strptime(data_lim_inter_str, '%Y-%m-%d').date() if data_lim_inter_str else None
+
+        # DOCUMENTOS (limpa e adiciona novamente)
+        edital.documentos_exigidos.clear()
+        documentos_ids = request.form.getlist('documentos_id')
+
+        if documentos_ids:
+            docs = Documento.query.filter(Documento.id.in_(documentos_ids)).all()
+            edital.documentos_exigidos.extend(docs)
+
+        db.session.commit()
+        flash("Edital atualizado com sucesso!")
+        return redirect(url_for('admin_listar_editais'))
+
+    # GET
+    universidades_db = Universidade.query.all()
+    documentos_db = Documento.query.all()
+
+    return render_template(
+        'admin_editar_edital.html',
+        edital=edital,
+        universidades=universidades_db,
+        documentos=documentos_db
+    )
 
 @app.route('/admin/edital/excluir/<int:id>', methods=['POST'])
 @login_required
