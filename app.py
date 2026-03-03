@@ -339,13 +339,14 @@ def admin_cadastro_edital():
         
         novo_edital = Edital(
             titulo=titulo,
+            universidade_id=universidade_id,   # <-- ADICIONE ISSO
             vagas=vagas,
             data_ini_edital=data_inicial,
             data_fim_edital=data_limite,
             data_ini_programa=data_inicial_intercambio,
             data_fim_programa=data_limite_intercambio
         )
-        
+                
         if documentos_selecionados_ids:
             docs = Documento.query.filter(Documento.id.in_(documentos_selecionados_ids)).all()
             novo_edital.documentos_exigidos.extend(docs)
@@ -377,6 +378,7 @@ def editar_edital(id):
 
     if request.method == 'POST':
         edital.titulo = request.form.get('titulo', '').strip()
+        edital.universidade_id = request.form.get('universidade_id')  # <-- ADD
         edital.vagas = int(request.form.get('vagas', 0))
 
         data_inicial_str = request.form.get('data_inicial')
