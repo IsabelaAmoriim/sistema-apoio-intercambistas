@@ -97,13 +97,11 @@ class Edital(db.Model):
     data_fim_programa = db.Column(db.Date, nullable=False)
     vagas = db.Column(db.Integer, nullable=False)
 
-    universidades = db.relationship(
-        'Universidade',
-        secondary=edital_universidade,
-        backref='editais_participantes',
-        lazy=True
-    )
+    # Nova coluna para relacionamento com universidade
+    universidade_id = db.Column(db.Integer, db.ForeignKey('universidade.id'), nullable=False)
+    universidade = db.relationship('Universidade', backref='editais')
 
+    # Mantém documentos (many-to-many)
     documentos_exigidos = db.relationship(
         'Documento',
         secondary=edital_documento,
