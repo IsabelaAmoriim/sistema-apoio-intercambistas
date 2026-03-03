@@ -367,8 +367,6 @@ def admin_cadastro_edital():
 
 @app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
-@app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
-@login_required
 def editar_edital(id):
     if not current_user.is_admin:
         flash("Acesso negado.")
