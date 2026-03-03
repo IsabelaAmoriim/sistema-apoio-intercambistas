@@ -340,30 +340,30 @@ def admin_cadastro_edital():
 
     if request.method == 'POST':
         titulo = request.form.get('titulo')
-        universidade_id = request.form.get('universidade_id')
+        universidade_id = request.form.get('universidade_id')  # ✅ pega a universidade selecionada
         vagas = int(request.form.get('vagas'))
         data_inicial = request.form.get('data_inicial')
         data_limite = request.form.get('data_limite')
         data_inicial_intercambio = request.form.get('data_inicial_intercambio')
         data_limite_intercambio = request.form.get('data_limite_intercambio')
-        documentos_id = request.form.getlist('documentos_id')  # lista de checkboxes
-
+        documentos_id = request.form.getlist('documentos_id')
+    
         novo_edital = Edital(
             titulo=titulo,
-            universidade_id=universidade_id, 
+            universidade_id=universidade_id,  # ⚠ Aqui agora funciona
             vagas=vagas,
-            data_ini_edital=data_inicial,
-            data_fim_edital=data_limite,
-            data_ini_programa=data_inicial_intercambio,
-            data_fim_programa=data_limite_intercambio
+            data_ini_edital=datetime.strptime(data_inicial, '%Y-%m-%d').date(),
+            data_fim_edital=datetime.strptime(data_limite, '%Y-%m-%d').date(),
+            data_ini_programa=datetime.strptime(data_inicial_intercambio, '%Y-%m-%d').date(),
+            data_fim_programa=datetime.strptime(data_limite_intercambio, '%Y-%m-%d').date()
         )
-
+    
         # adiciona os documentos selecionados
         for doc_id in documentos_id:
             documento = Documento.query.get(doc_id)
             if documento:
                 novo_edital.documentos_exigidos.append(documento)
-
+    
         db.session.add(novo_edital)
         db.session.commit()
         flash("Edital cadastrado com sucesso!")
