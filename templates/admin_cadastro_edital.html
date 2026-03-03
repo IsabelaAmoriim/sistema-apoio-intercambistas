@@ -54,7 +54,6 @@
                 <div class="form-group">
                     <label>Universidade Parceira</label>
                     <select name="universidades" multiple required>
-                        <option value="">Selecione a universidade...</option>
                         {% for uni in universidades %}
                             <option value="{{ uni.id }}">{{ uni.nome }}</option>
                         {% endfor %}
@@ -110,3 +109,4 @@
 </body>
 
 </html>
+
