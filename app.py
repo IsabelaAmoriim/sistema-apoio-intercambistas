@@ -267,15 +267,31 @@ def admin_cadastro_universidade():
     if not current_user.is_admin:
         flash("Acesso negado.")
         return redirect(url_for("dashboard"))
+
     if request.method == 'POST':
         nome = request.form['nome'].strip().title()
         endereco = request.form['endereco'].strip()
         pais_id = request.form['pais_id']
-        nova_universidade = Universidade(nome=nome, endereco=endereco, pais_id=pais_id)
+
+  
+        uni_existente = Universidade.query.filter_by(nome=nome).first()
+        if uni_existente:
+            flash("Erro: Esta universidade já está cadastrada no sistema.")
+            return redirect(url_for('admin_cadastro_universidade'))
+
+
+        nova_universidade = Universidade(
+            nome=nome,
+            endereco=endereco,
+            pais_id=pais_id
+        )
+
         db.session.add(nova_universidade)
         db.session.commit()
+
         flash('Universidade cadastrada com sucesso!')
         return redirect(url_for('admin_dashboard'))
+
     paises = Pais.query.all()
     return render_template('admin_cadastro_universidade.html', paises=paises)
 
