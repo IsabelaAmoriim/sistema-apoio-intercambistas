@@ -328,58 +328,52 @@ def admin_listar_editais():
     editais_db = Edital.query.all()
     return render_template('admin_edital.html', editais=editais_db)
 
-@app.route('/admin/cadastro_edital', methods=['GET', 'POST'])
+@app.route('/admin/cadastro/edital', methods=['GET', 'POST'])
 @login_required
 def admin_cadastro_edital():
     if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for("dashboard"))
+        flash("Acesso negado!")
+        return redirect(url_for('index'))
+
+    universidades = Universidade.query.all()
+    documentos = Documento.query.all()
 
     if request.method == 'POST':
-        titulo = request.form.get('titulo', '').strip()
-        pais_id = request.form.get('pais_id')
+        titulo = request.form.get('titulo')
         universidade_id = request.form.get('universidade_id')
-        vagas = int(request.form.get('vagas', 0))
-        
-        data_inicial_str = request.form.get('data_inicial')
-        data_limite_str = request.form.get('data_limite')
-        data_ini_inter_str = request.form.get('data_inicial_intercambio')
-        data_lim_inter_str = request.form.get('data_limite_intercambio')
-        
-        data_inicial = datetime.strptime(data_inicial_str, '%Y-%m-%d').date() if data_inicial_str else None
-        data_limite = datetime.strptime(data_limite_str, '%Y-%m-%d').date() if data_limite_str else None
-        data_inicial_intercambio = datetime.strptime(data_ini_inter_str, '%Y-%m-%d').date() if data_ini_inter_str else None
-        data_limite_intercambio = datetime.strptime(data_lim_inter_str, '%Y-%m-%d').date() if data_lim_inter_str else None
-        
-        documentos_selecionados_ids = request.form.getlist('documentos_id')
-        
+        vagas = int(request.form.get('vagas'))
+        data_inicial = request.form.get('data_inicial')
+        data_limite = request.form.get('data_limite')
+        data_inicial_intercambio = request.form.get('data_inicial_intercambio')
+        data_limite_intercambio = request.form.get('data_limite_intercambio')
+        documentos_id = request.form.getlist('documentos_id')  # lista de checkboxes
+
         novo_edital = Edital(
             titulo=titulo,
-            universidade_id=universidade_id,   # <-- ADICIONE ISSO
+            universidade_id=universidade_id, 
             vagas=vagas,
             data_ini_edital=data_inicial,
             data_fim_edital=data_limite,
             data_ini_programa=data_inicial_intercambio,
             data_fim_programa=data_limite_intercambio
         )
-                
-        if documentos_selecionados_ids:
-            docs = Documento.query.filter(Documento.id.in_(documentos_selecionados_ids)).all()
-            novo_edital.documentos_exigidos.extend(docs)
-        
+
+        # adiciona os documentos selecionados
+        for doc_id in documentos_id:
+            documento = Documento.query.get(doc_id)
+            if documento:
+                novo_edital.documentos_exigidos.append(documento)
+
         db.session.add(novo_edital)
-        db.session.commit() 
-        flash("Edital publicado com sucesso!")
+        db.session.commit()
+        flash("Edital cadastrado com sucesso!")
         return redirect(url_for('admin_listar_editais'))
-    
-    paises_db = Pais.query.all()
-    universidades_db = Universidade.query.all()
-    documentos_db = Documento.query.all()
-    
-    return render_template('admin_cadastro_edital.html', 
-                           paises=paises_db, 
-                           universidades=universidades_db, 
-                           documentos=documentos_db)
+
+    return render_template(
+        'admin_cadastro_edital.html',
+        universidades=universidades,
+        documentos=documentos
+    )
 
 @app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
