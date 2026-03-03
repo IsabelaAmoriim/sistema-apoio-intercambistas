@@ -339,13 +339,11 @@ def admin_cadastro_edital():
         
         novo_edital = Edital(
             titulo=titulo,
-            pais_id=pais_id,
-            universidade_id=universidade_id,
             vagas=vagas,
-            data_inicial=data_inicial,
-            data_limite=data_limite,
-            data_inicial_intercambio=data_inicial_intercambio,
-            data_limite_intercambio=data_limite_intercambio
+            data_ini_edital=data_inicial,
+            data_fim_edital=data_limite,
+            data_ini_programa=data_inicial_intercambio,
+            data_fim_programa=data_limite_intercambio
         )
         
         if documentos_selecionados_ids:
