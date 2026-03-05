@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar País - Admin SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form">
+            <h2 class="titulo-form">Cadastrar Novo País</h2>
+
+                {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST"
+                      action="{% if paises %}{{ url_for('editar_paises', id=paises.id) }}{% else %}{{ url_for('cadastro_paises') }}{% endif %}">
+                
+                    <div class="form-group">
+                        <label>Nome do País</label>
+                        <input type="text" name="{% if paises %}nome{% else %}nome_pais{% endif %}"
+                               placeholder="Ex: Portugal"
+                               value="{% if paises %}{{ paises.nome }}{% endif %}"
+                               required>
+                    </div>
+                
+                    <div class="form-group">
+                        <label>Sigla (Código ISO)</label>
+                        <input type="text" name="sigla_pais"
+                               placeholder="Ex: PT, US, CA"
+                               maxlength="3"
+                               value="{% if paises %}{{ paises.iso }}{% endif %}"
+                               required>
+                    </div>
+                
+                    <div class="form-group">
+                        <label>Descrição Curta</label>
+                        <input type="text" name="descricao"
+                               placeholder="Breve resumo do destino"
+                               value="{% if paises %}{{ paises.desc }}{% endif %}"
+                               required>
+                    </div>
+                
+                    <button type="submit" class="btn-enviar">
+                        {% if paises %}Salvar Alterações{% else %}Salvar País{% endif %}
+                    </button>
+                
+                </form>
+        </div>
+    </main>
+</body>
+</html>
