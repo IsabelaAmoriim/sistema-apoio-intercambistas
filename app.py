@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import (
     db, Usuario, Pais, Universidade,
-    Documento, DocumentoUsuario, seed_database, Edital
+    Documento, DocumentoUsuario, seed_database, Edital, Inscricao, Topico
 )
 
 app = Flask(__name__)
@@ -99,33 +99,86 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
-
+    # Busca a inscrição do aluno (se ele tiver alguma) para podermos ler o status
+    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
+    
+    return render_template("dashboard.html", inscricao=inscricao)
 @app.route("/documentos")
 @login_required
 def lista_documentos():
     meus_documentos = DocumentoUsuario.query.filter_by(usuario_id=current_user.id).all()
     return render_template("lista_documentos.html", documentos=meus_documentos)
 
-@app.route("/excluir-documento/<int:id>", methods=["POST"])
+@app.route("/cadastro-documento", methods=['GET', 'POST'])
+@login_required
+def cadastro_documento():
+    # 1. Verifica se o aluno já se inscreveu em algum edital
+    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
+    if not inscricao:
+        flash("Você precisa se inscrever em um edital antes de enviar documentos!")
+        return redirect(url_for('editais_abertos'))
+
+    # 2. Pega os documentos que o Edital exige e os que o aluno já enviou
+    documentos_exigidos = inscricao.edital.documentos_exigidos
+    docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+    
+    # 3. Filtra apenas os que faltam enviar (Pendentes)
+    documentos_pendentes = [doc for doc in documentos_exigidos if doc.id not in docs_enviados_ids]
+
+    if request.method == 'POST':
+        documento_id = request.form.get('documento_id') # Recebe o ID da caixa de seleção
+        
+        if 'arquivo' not in request.files:
+            flash('Nenhum arquivo recebido.')
+            return redirect(request.url)
+            
+        ficheiro = request.files['arquivo']
+        if ficheiro.filename == '':
+            flash('Nenhum arquivo selecionado.')
+            return redirect(request.url)
+            
+        if ficheiro and arquivo_permitido(ficheiro.filename):
+            nome_original = secure_filename(ficheiro.filename)
+            nome_unico = f"{uuid.uuid4()}_{nome_original}"
+            caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_unico)
+            ficheiro.save(caminho_salvar)
+            
+            # Salva o arquivo vinculando diretamente à obrigatoriedade do Admin!
+            novo_envio = DocumentoUsuario(
+                usuario_id=current_user.id,
+                documento_id=documento_id, 
+                caminho_arquivo=caminho_salvar,
+                status='Em Análise' 
+            )
+            db.session.add(novo_envio)
+            db.session.commit()
+            flash('Documento enviado com sucesso!')
+            return redirect(url_for('checklist'))
+        else:
+            flash('Tipo de arquivo não suportado. Envie apenas PDF ou Imagens.')
+            return redirect(request.url)
+            
+    # Envia a lista de pendentes para a tela do aluno
+    return render_template("cadastro_documento.html", pendentes=documentos_pendentes)
+
+@app.route("/excluir-documento/<int:id>", methods=["GET", "POST"]) # Correção do Erro 405 (Aceita GET agora)
 @login_required
 def excluir_documento(id):
+    # Encontra o arquivo enviado pelo aluno
     doc_para_excluir = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
+    
     if doc_para_excluir:
-        doc_base_id = doc_para_excluir.documento_id
+        # Apaga o arquivo físico do computador
         if doc_para_excluir.caminho_arquivo and os.path.exists(doc_para_excluir.caminho_arquivo):
             os.remove(doc_para_excluir.caminho_arquivo)
+            
+        # Apaga APENAS a relação do aluno, NUNCA o documento base do Admin
         db.session.delete(doc_para_excluir)
         db.session.commit()
-        ainda_existe = DocumentoUsuario.query.filter_by(documento_id=doc_base_id).first()
-        if not ainda_existe:
-            doc_base = Documento.query.get(doc_base_id)
-            if doc_base and doc_base.descricao == "Enviado pelo aluno":
-                db.session.delete(doc_base)
-                db.session.commit()
         flash("Documento excluído com sucesso!")
     else:
         flash("Erro: Documento não encontrado.")
+        
     return redirect(url_for('lista_documentos'))
 
 @app.route("/baixar-documento/<int:id>")
@@ -138,54 +191,65 @@ def baixar_documento(id):
         flash("Erro: O arquivo físico não foi encontrado no servidor.")
         return redirect(url_for('lista_documentos'))
 
-@app.route("/cadastro-documento", methods=['GET', 'POST'])
-@login_required
-def cadastro_documento():
-    if request.method == 'POST':
-        if 'arquivo' not in request.files:
-            flash('Nenhum ficheiro recebido.')
-            return redirect(request.url)
-        ficheiro = request.files['arquivo']
-        nome_documento = request.form.get('nome') 
-        if ficheiro.filename == '':
-            flash('Nenhum ficheiro selecionado.')
-            return redirect(request.url)
-        if ficheiro and arquivo_permitido(ficheiro.filename):
-            nome_original = secure_filename(ficheiro.filename)
-            nome_unico = f"{uuid.uuid4()}_{nome_original}"
-            caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_unico)
-            ficheiro.save(caminho_salvar)
-            doc_base = Documento.query.filter_by(nome=nome_documento).first()
-            if not doc_base:
-                if not nome_documento:
-                    nome_documento = "Documento sem nome"
-                doc_base = Documento(nome=nome_documento, descricao="Enviado pelo aluno")
-                db.session.add(doc_base)
-                db.session.flush() 
-            novo_envio = DocumentoUsuario(
-                usuario_id=current_user.id,
-                documento_id=doc_base.id, 
-                caminho_arquivo=caminho_salvar,
-                status='Em Análise' 
-            )
-            db.session.add(novo_envio)
-            db.session.commit()
-            flash('Documento enviado com sucesso!')
-            return redirect(url_for('lista_documentos'))
-        else:
-            flash('Tipo de ficheiro não suportado. Envie apenas PDF ou Imagens.')
-            return redirect(request.url)
-    return render_template("cadastro_documento.html")
-
 @app.route("/checklist")
 @login_required
 def checklist():
-    return render_template("checklist.html")
+    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
+    
+    if not inscricao:
+        return render_template("checklist.html", inscricao=None)
+
+    edital = inscricao.edital
+    documentos_exigidos = edital.documentos_exigidos
+    
+    docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+    
+    tarefas = []
+    tarefas_concluidas = 0
+
+    tarefas.append({"nome": "Inscrição no Edital (CRA e Carta)", "icone": "fa-file-signature", "status": "Concluído", "classe": "concluido"})
+    tarefas_concluidas += 1
+
+    for doc in documentos_exigidos:
+        if doc.id in docs_enviados_ids:
+            tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-check-circle", "status": "Concluído", "classe": "concluido"})
+            tarefas_concluidas += 1
+        else:
+            tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-upload", "status": "Pendente", "classe": "pendente"})
+
+    total_tarefas = len(tarefas)
+    progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+
+    return render_template("checklist.html", inscricao=inscricao, tarefas=tarefas, progresso=progresso)
 
 @app.route("/forum")
 @login_required
 def forum():
-    return render_template("forum.html")
+    # Busca todos os tópicos no banco, ordenados do mais recente para o mais antigo
+    topicos_db = Topico.query.order_by(Topico.data_criacao.desc()).all()
+    return render_template("forum.html", topicos=topicos_db)
+
+@app.route("/forum/escrever", methods=['GET', 'POST'])
+@login_required
+def forum_escrever():
+    if request.method == 'POST':
+        titulo = request.form.get('titulo')
+        conteudo = request.form.get('conteudo')
+        
+        # Cria a nova postagem no banco
+        novo_topico = Topico(
+            titulo=titulo,
+            conteudo=conteudo,
+            usuario_id=current_user.id
+        )
+        
+        db.session.add(novo_topico)
+        db.session.commit()
+        
+        flash("Tópico criado com sucesso!")
+        return redirect(url_for('forum'))
+        
+    return render_template("forum_escrever.html")
 
 @app.route('/admin')
 @login_required
@@ -340,30 +404,33 @@ def admin_cadastro_edital():
 
     if request.method == 'POST':
         titulo = request.form.get('titulo')
-        universidade_id = request.form.get('universidade_id')  # ✅ pega a universidade selecionada
+        universidade_id = request.form.get('universidade_id')
         vagas = int(request.form.get('vagas'))
         data_inicial = request.form.get('data_inicial')
         data_limite = request.form.get('data_limite')
         data_inicial_intercambio = request.form.get('data_inicial_intercambio')
         data_limite_intercambio = request.form.get('data_limite_intercambio')
         documentos_id = request.form.getlist('documentos_id')
-    
+
+        if not documentos_id:
+            flash("Erro: É obrigatório selecionar pelo menos um documento exigido para publicar o edital.")
+            return redirect(url_for('admin_cadastro_edital'))
+
         novo_edital = Edital(
             titulo=titulo,
-            universidade_id=universidade_id,  # ⚠ Aqui agora funciona
+            universidade_id=universidade_id,  
             vagas=vagas,
             data_ini_edital=datetime.strptime(data_inicial, '%Y-%m-%d').date(),
             data_fim_edital=datetime.strptime(data_limite, '%Y-%m-%d').date(),
             data_ini_programa=datetime.strptime(data_inicial_intercambio, '%Y-%m-%d').date(),
             data_fim_programa=datetime.strptime(data_limite_intercambio, '%Y-%m-%d').date()
         )
-    
-        # adiciona os documentos selecionados
+
         for doc_id in documentos_id:
             documento = Documento.query.get(doc_id)
             if documento:
                 novo_edital.documentos_exigidos.append(documento)
-    
+
         db.session.add(novo_edital)
         db.session.commit()
         flash("Edital cadastrado com sucesso!")
@@ -433,6 +500,108 @@ def excluir_edital(id):
         db.session.commit()
         flash("Edital removido permanentemente!")
     return redirect(url_for('admin_listar_editais'))
+
+@app.route("/editais-abertos")
+@login_required
+def editais_abertos():
+    editais_disponiveis = Edital.query.filter_by(encerrado=False).all()
+    return render_template("editais_abertos.html", editais=editais_disponiveis)
+
+@app.route("/edital/<int:id>")
+@login_required
+def detalhes_edital(id):
+    
+    edital_db = Edital.query.get_or_404(id)
+    
+    return render_template("detalhes_edital.html", edital=edital_db)
+
+@app.route("/edital/<int:id>/inscrever", methods=['GET', 'POST'])
+@login_required
+def inscrever_edital(id):
+    edital = Edital.query.get_or_404(id)
+    
+    # Verifica se o aluno já se inscreveu neste edital antes
+    inscricao_existente = Inscricao.query.filter_by(usuario_id=current_user.id, edital_id=edital.id).first()
+    
+    if inscricao_existente:
+        flash("Você já está inscrito neste edital! Acompanhe o status no seu Checklist.")
+        return redirect(url_for('detalhes_edital', id=edital.id))
+
+    if request.method == 'POST':
+        cra = request.form.get('cra')
+        carta = request.form.get('carta_motivacao')
+        
+        # Cria a nova inscrição
+        nova_inscricao = Inscricao(
+            usuario_id=current_user.id,
+            edital_id=edital.id,
+            cra=float(cra),
+            carta_motivacao=carta
+        )
+        
+        db.session.add(nova_inscricao)
+        db.session.commit()
+        
+        flash("Inscrição realizada com sucesso! Agora complete o envio dos seus documentos.")
+        return redirect(url_for('checklist'))
+        
+    return render_template("inscricao_edital.html", edital=edital)
+
+# --- ROTAS DE AVALIAÇÃO DE INSCRIÇÕES (ADMIN) ---
+
+@app.route('/admin/inscricoes')
+@login_required
+def admin_listar_inscricoes():
+    if not current_user.is_admin:
+        flash("Acesso negado.")
+        return redirect(url_for('dashboard'))
+    
+    # Busca todas as inscrições, da mais recente para a mais antiga
+    inscricoes = Inscricao.query.order_by(Inscricao.data_inscricao.desc()).all()
+    return render_template('admin_listar_inscricoes.html', inscricoes=inscricoes)
+
+@app.route('/admin/inscricao/<int:id>', methods=['GET', 'POST'])
+@login_required
+def admin_avaliar_inscricao(id):
+    if not current_user.is_admin:
+        return redirect(url_for('dashboard'))
+
+    inscricao = Inscricao.query.get_or_404(id)
+
+    if request.method == 'POST':
+        acao = request.form.get('acao') # Pega se o admin clicou em aprovar ou reprovar
+        
+        if acao == 'aprovar':
+            inscricao.status = 'Aprovado'
+            flash(f"Candidatura de {inscricao.usuario.nome} APROVADA com sucesso!")
+        elif acao == 'reprovar':
+            inscricao.status = 'Reprovado'
+            flash(f"Candidatura de {inscricao.usuario.nome} REPROVADA.")
+            
+        db.session.commit()
+        return redirect(url_for('admin_listar_inscricoes'))
+
+    # Pega apenas os documentos que este aluno enviou para os requisitos deste edital
+    docs_exigidos_ids = [doc.id for doc in inscricao.edital.documentos_exigidos]
+    documentos_aluno = DocumentoUsuario.query.filter(
+        DocumentoUsuario.usuario_id == inscricao.usuario_id,
+        DocumentoUsuario.documento_id.in_(docs_exigidos_ids)
+    ).all()
+
+    return render_template('admin_avaliar_inscricao.html', inscricao=inscricao, documentos=documentos_aluno)
+
+@app.route('/admin/baixar-documento/<int:id>')
+@login_required
+def admin_baixar_documento(id):
+    if not current_user.is_admin:
+        return redirect(url_for('dashboard'))
+        
+    doc = DocumentoUsuario.query.get_or_404(id)
+    if doc.caminho_arquivo and os.path.exists(doc.caminho_arquivo):
+        return send_file(doc.caminho_arquivo, as_attachment=True)
+    else:
+        flash("Erro: O arquivo não foi encontrado no servidor.")
+        return redirect(request.referrer)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -10,19 +10,20 @@
         <header>
             <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
             <nav>
-                <ul>
-                    <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
-                    <li class="dropdown">
-                        <a href="#">Cadastros ▾</a>
-                        <ul class="submenu">
-                            <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
-                            <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
-                            <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
-                            <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_inscricoes') }}" style="color: #ffc107;">Avaliar Inscrições</a></li>
+                <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
             <div class="auth-buttons">
                 <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
                 <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>

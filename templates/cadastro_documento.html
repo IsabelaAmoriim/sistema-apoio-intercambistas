@@ -1,87 +1,92 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Novo Documento - SAI</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    </head>
-    <body>
-        <header>
-            <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
-                    <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
-                    <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Documento - SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form">
+            <h2 class="titulo-form">Enviar Documento</h2>
+            
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
                 </ul>
-            </nav>
-            <div class="auth-buttons">
-                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
-                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
-            </div>
-        </header>
+            {% endif %}
+            {% endwith %}
 
-        <main class="container-cadastro">
-            <div class="card-form">
-                <h2 class="titulo-form">Cadastrar Novo Documento</h2>
-                
-                        {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <ul class="alertas-container">
-                        {% for message in messages %}
-                        <li class="alerta-item">{{ message }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% endif %}
-                    {% endwith %}
-
-            <form action="{{ url_for('cadastro_documento') }}" method="POST" enctype="multipart/form-data">
+            {% if pendentes %}
+                <form action="{{ url_for('cadastro_documento') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label>Nome do Documento</label>
-                        <input type="text" name="nome" placeholder="Ex: Passaporte, CPF..." required>
-                    </div>
-                    <div class="form-group">
-                        <label>Categoria</label>
-                        <select name="categoria" required>
-                            <option value="">Selecione...</option>
-                            <option value="Identidade">Identidade</option>
-                            <option value="Acadêmico">Acadêmico</option>
-                            <option value="Visto">Visto</option>
+                        <label>Qual documento exigido você está enviando?</label>
+                        <select name="documento_id" required>
+                            <option value="">Selecione o documento pendente...</option>
+                            {% for doc in pendentes %}
+                                <option value="{{ doc.id }}">{{ doc.nome }} ({{ doc.descricao }})</option>
+                            {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group campo-arquivo">
+                    
+                    <div class="form-group campo-arquivo" style="margin-top: 15px;">
                         <label>Arquivo (PDF ou Imagem)</label>
-                        
                         <label for="arquivo_orig" class="custom-file-upload">
                             <i class="fas fa-cloud-upload-alt"></i> Escolher Arquivo
                         </label>
-                        
                         <input type="file" id="arquivo_orig" name="arquivo" required onchange="mostrarNomeArquivo()" style="display: none;">
-                        
-                        <span id="nome-arquivo-selecionado">Nenhum arquivo selecionado</span>
+                        <span id="nome-arquivo-selecionado" style="margin-bottom: 15px;">Nenhum arquivo selecionado</span>
                     </div>
+                    
                     <button type="submit" class="btn-enviar">Fazer Upload</button>
                 </form>
-            </div>
-        </main>
+            {% else %}
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-check-circle" style="font-size: 50px; color: #28a745; margin-bottom: 15px;"></i>
+                    <p style="color: #28a745; font-size: 18px; font-weight: bold;">🎉 Você já enviou todos os documentos exigidos!</p>
+                    <a href="{{ url_for('checklist') }}" class="btn-enviar" style="text-decoration: none; margin-top: 15px;">Ir para o Checklist</a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
 
-        <script>
-            function mostrarNomeArquivo() {
-                const inputArquivo = document.getElementById('arquivo_orig');
-                const textoNomeArquivo = document.getElementById('nome-arquivo-selecionado');
+    <script>
+        function mostrarNomeArquivo() {
+            const inputArquivo = document.getElementById('arquivo_orig');
+            const textoNomeArquivo = document.getElementById('nome-arquivo-selecionado');
 
-                if (inputArquivo.files && inputArquivo.files.length > 0) {
-                    textoNomeArquivo.textContent = inputArquivo.files[0].name;
-                    textoNomeArquivo.style.color = "#00004d"; 
-                    textoNomeArquivo.style.fontWeight = "bold";
-                } else {
-                    textoNomeArquivo.textContent = "Nenhum arquivo selecionado";
-                    textoNomeArquivo.style.color = "#999";
-                    textoNomeArquivo.style.fontWeight = "normal";
-                }
+            if (inputArquivo.files && inputArquivo.files.length > 0) {
+                textoNomeArquivo.textContent = inputArquivo.files[0].name;
+                textoNomeArquivo.style.color = "#00004d"; 
+                textoNomeArquivo.style.fontWeight = "bold";
+            } else {
+                textoNomeArquivo.textContent = "Nenhum arquivo selecionado";
+                textoNomeArquivo.style.color = "#999";
+                textoNomeArquivo.style.fontWeight = "normal";
             }
-        </script>
-    </body>
-    </html>
+        }
+    </script>
+</body>
+</html>

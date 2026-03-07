@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Tópico - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <a href="{{ url_for('forum') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold; margin-bottom: 20px; display: inline-block;">
+            <i class="fas fa-arrow-left"></i> Voltar para o Fórum
+        </a>
+
+        <div class="card-form" style="max-width: 800px;">
+            <h2 class="titulo-form">Criar Novo Tópico</h2>
+            <p class="subtitulo">Compartilhe sua dúvida, dica ou experiência com os outros intercambistas.</p>
+
+            <form action="{{ url_for('forum_escrever') }}" method="POST">
+                <div class="form-group">
+                    <label>Título do Tópico</label>
+                    <input type="text" name="titulo" placeholder="Ex: Como conseguir moradia barata em Portugal?" required>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Mensagem</label>
+                    <textarea name="conteudo" rows="8" placeholder="Escreva os detalhes aqui..." style="width: 100%; border: 1px solid rgb(224, 224, 224); border-radius: 10px; padding: 14px; font-family: 'Open Sans', sans-serif; resize: vertical;" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-enviar" style="margin-top: 20px;"><i class="fas fa-paper-plane" style="margin-right: 10px;"></i> Publicar no Fórum</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

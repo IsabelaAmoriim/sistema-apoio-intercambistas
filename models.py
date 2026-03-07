@@ -13,7 +13,6 @@ class Usuario(UserMixin, db.Model):
     senha_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     
-    # relacionamento pra classe DocumentoUsuario
     documentos_enviados = db.relationship('DocumentoUsuario', backref='dono_do_documento', lazy=True)
     
     @staticmethod
@@ -33,10 +32,8 @@ class Pais(db.Model):
     iso = db.Column(db.String(2), unique=True)
     desc = db.Column(db.String(500), nullable=True)
     
-    # relacionamento com universidade
     universidades = db.relationship('Universidade', backref='pais_origem', lazy=True)
     
-    # métodos de busca adicionados
     @staticmethod
     def buscar_por_nome(nome_procurado):
         return Pais.query.filter_by(nome=nome_procurado).first()
@@ -58,9 +55,7 @@ class Documento(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     descricao = db.Column(db.String(350), nullable=True)
     obrigatoriedade = db.Column(db.Boolean, default=True)
-    # diz se o documento é geral (null/none) ou de um país específico
     pais_id = db.Column(db.Integer, db.ForeignKey('pais.id'), nullable=True)
-    # relacionamento pra classe DocumentoUsuario de novo
     envios_dos_alunos = db.relationship('DocumentoUsuario', backref='tipo_documento', lazy=True)
 
 class DocumentoUsuario(db.Model):
@@ -68,19 +63,10 @@ class DocumentoUsuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     documento_id = db.Column(db.Integer, db.ForeignKey('documento.id'), nullable=False)
-    # caminho do arquivo guarda o endereço (diretório) da foto/documento
     caminho_arquivo = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), default="Pendente")
 
-
-edital_universidade = db.Table(
-    'edital_universidade',
-    db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
-    db.Column('universidade_id', db.Integer, db.ForeignKey('universidade.id'), primary_key=True)
-)
-
-edital_documento = db.Table(
-    'edital_documento',
+edital_documento = db.Table('edital_documento',
     db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
     db.Column('documento_id', db.Integer, db.ForeignKey('documento.id'), primary_key=True)
 )
@@ -91,43 +77,66 @@ class Edital(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     descricao = db.Column(db.String(500), nullable=True)
     encerrado = db.Column(db.Boolean, default=False)
+    vagas = db.Column(db.Integer, nullable=False)
+    
     data_ini_edital = db.Column(db.Date, nullable=False)
     data_fim_edital = db.Column(db.Date, nullable=False)
-    data_ini_programa = db.Column(db.Date, nullable=False)
-    data_fim_programa = db.Column(db.Date, nullable=False)
-    vagas = db.Column(db.Integer, nullable=False)
-
-    # ⚠ Aqui: cada edital só pode ter uma universidade
+    data_ini_programa = db.Column(db.Date, nullable=True)
+    data_fim_programa = db.Column(db.Date, nullable=True)
+    
     universidade_id = db.Column(db.Integer, db.ForeignKey('universidade.id'), nullable=False)
     universidade = db.relationship('Universidade', backref='editais')
+    
+    documentos_exigidos = db.relationship('Documento', secondary=edital_documento, lazy='subquery', backref=db.backref('editais', lazy=True))
 
-    documentos_exigidos = db.relationship(
-        'Documento',
-        secondary=edital_documento,
-        backref='editais_relacionados',
-        lazy=True
-    )
+# --- CLASSE INSCRIÇÃO (O PROCESSO SELETIVO) ---
+from datetime import datetime
 
+class Inscricao(db.Model):
+    __tablename__ = 'inscricao'
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    edital_id = db.Column(db.Integer, db.ForeignKey('edital.id'), nullable=False)
+    
+    cra = db.Column(db.Float, nullable=False) # Guarda a nota de 0 a 10 ou 0 a 100
+    carta_motivacao = db.Column(db.Text, nullable=False) # Guarda o texto escrito pelo aluno
+    status = db.Column(db.String(20), default="Em Análise") # Status: Em Análise, Aprovado, Reprovado
+    data_inscricao = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relacionamentos para ligar tudo
+    usuario = db.relationship('Usuario', backref=db.backref('inscricoes', lazy=True))
+    edital = db.relationship('Edital', backref=db.backref('inscricoes', lazy=True))
+
+    # --- CLASSE TÓPICO (FÓRUM) ---
+class Topico(db.Model):
+    __tablename__ = 'topico'
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    conteudo = db.Column(db.Text, nullable=False)
+    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # O tópico pertence a um usuário
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    autor = db.relationship('Usuario', backref=db.backref('topicos', lazy=True))
 
 def seed_database():
-        admins = [
-            {"nome": "Admin Breno", "email": "breno@gmail.com", "cpf": "00000000000", "senha": "breno123"},
-            {"nome": "Admin Clara", "email": "clara@gmail.com", "cpf": "00000000001", "senha": "clara123"},
-            {"nome": "Admin Eduardo", "email": "eduardo@gmail.com", "cpf": "00000000002", "senha": "eduardo123"},
-            {"nome": "Admin Isabela", "email": "isabela@gmail.com", "cpf": "00000000003", "senha": "isabela123"},
-            {"nome": "Admin Patrick", "email": "patrick@gmail.com", "cpf": "00000000004", "senha": "patrick123"}
-        ]
+    admins = [
+        {"nome": "Admin Breno", "email": "breno@gmail.com", "cpf": "00000000000", "senha": "breno123"},
+        {"nome": "Admin Clara", "email": "clara@gmail.com", "cpf": "00000000001", "senha": "clara123"},
+        {"nome": "Admin Eduardo", "email": "eduardo@gmail.com", "cpf": "00000000002", "senha": "eduardo123"},
+        {"nome": "Admin Isabela", "email": "isabela@gmail.com", "cpf": "00000000003", "senha": "isabela123"},
+        {"nome": "Admin Patrick", "email": "patrick@gmail.com", "cpf": "00000000004", "senha": "patrick123"}
+    ]
 
-        for data in admins:
-            # Só cria se o email não estiver no banco
-            if not Usuario.query.filter_by(email=data["email"]).first():
-                novo_admin = Usuario(
-                    nome=data["nome"],
-                    email=data["email"],
-                    cpf=data["cpf"],
-                    senha_hash=generate_password_hash(data["senha"]),
-                    is_admin=True
-                )
-                db.session.add(novo_admin)
-        
-        db.session.commit()
+    for data in admins:
+        if not Usuario.query.filter_by(email=data["email"]).first():
+            novo_admin = Usuario(
+                nome=data["nome"],
+                email=data["email"],
+                cpf=data["cpf"],
+                senha_hash=generate_password_hash(data["senha"]),
+                is_admin=True
+            )
+            db.session.add(novo_admin)
+    
+    db.session.commit()

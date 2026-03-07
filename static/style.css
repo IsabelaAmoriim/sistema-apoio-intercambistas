@@ -742,3 +742,153 @@ form {
 .btn-excluir:hover {
     background-color: rgb(254, 226, 226) !important; 
 }
+
+/* --- ESTILOS PARA A LISTA DE EDITAIS (VISÃO DO ALUNO) --- */
+.grid-editais {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.card-edital {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border-top: 5px solid rgb(24, 6, 96);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease;
+}
+
+.card-edital:hover {
+    transform: translateY(-5px);
+}
+
+.info-edital h3 {
+    color: rgb(24, 6, 96);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+.info-edital p {
+    margin: 10px 0;
+    color: rgb(85, 85, 85);
+    font-size: 15px;
+}
+
+.info-edital i {
+    color: rgb(24, 6, 96);
+    width: 20px;
+}
+
+.btn-detalhes {
+    background-color: rgb(24, 6, 96);
+    color: white;
+    text-align: center;
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin-top: 20px;
+    font-weight: bold;
+    display: block;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-detalhes:hover {
+    background-color: rgb(40, 10, 150);
+    transform: translateY(-2px);
+}
+
+/* --- ESTILOS PARA DETALHES DO EDITAL --- */
+.container-detalhes {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+.card-detalhes {
+    background: white;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.cabecalho-edital {
+    border-bottom: 2px solid rgb(238, 238, 238);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+.cabecalho-edital h2 {
+    color: rgb(24, 6, 96);
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+}
+.badge-vagas {
+    background-color: rgb(227, 242, 253);
+    color: #1976d2;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    display: inline-block;
+}
+.grid-info-edital {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+.secao-info-edital h4 {
+    color: rgb(24, 6, 96);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+.secao-info-edital p, .secao-info-edital ul {
+    color: rgb(85, 85, 85);
+    line-height: 1.6;
+}
+.secao-info-edital ul {
+    padding-left: 20px;
+}
+.btn-inscrever {
+    display: inline-block;
+    background-color: rgb(40, 167, 69);
+    color: white;
+    padding: 15px 40px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-top: 30px;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+.btn-inscrever:hover {
+    background-color: rgb(33, 136, 56);
+    transform: translateY(-2px);
+    color: white;
+}
+.form-group input[type="checkbox"] {
+    height: 20px !important; 
+    width: 20px;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    box-shadow: none !important; 
+}
+
+.checkbox-group label {
+    cursor: pointer;
+    user-select: none; 
+    transition: color 0.2s;
+}
+
+.checkbox-group label:hover {
+    color: rgb(24, 6, 96); 
+}

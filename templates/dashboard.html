@@ -1,86 +1,107 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <title>Painel do Aluno - SAI</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    </head> 
-    <body>
-        
-        <header>
-            <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Painel do Aluno - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head> 
+<body>
+    
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
 
         <nav>
             <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
                 <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
                 <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
                 <li><a href="{{ url_for('forum') }}">Fórum</a></li>
-                </li>
             </ul>
         </nav>
 
-            <div class="auth-buttons">
-                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
-                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <section class="dash-header">
+            <h2>Visão Geral do seu Intercâmbio</h2>
+            
+            {% if inscricao %}
+                {% if inscricao.status == 'Aprovado' %}
+                    <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745; margin-top: 15px;">
+                        <h3 style="margin: 0 0 5px 0;">🎉 PARABÉNS! VOCÊ FOI APROVADO!</h3>
+                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> foi aceite. Fique atento ao seu email para os próximos passos da viagem.</p>
+                    </div>
+                {% elif inscricao.status == 'Reprovado' %}
+                    <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border-left: 5px solid #dc3545; margin-top: 15px;">
+                        <h3 style="margin: 0 0 5px 0;">Candidatura Encerrada</h3>
+                        <p style="margin: 0;">Infelizmente, a sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> não foi aprovada desta vez. Continue a tentar nos próximos editais!</p>
+                    </div>
+                {% else %}
+                    <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107; margin-top: 15px;">
+                        <h3 style="margin: 0 0 5px 0;">⏳ Em Análise</h3>
+                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> está a ser avaliada pela nossa equipa. Acompanhe os detalhes através do seu Checklist.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p>Ainda não se inscreveu em nenhum edital. Vá até ao menu <strong>Editais Abertos</strong> e comece a sua jornada!</p>
+            {% endif %}
+            
+        </section>
+
+        <div class="dash-grid">
+            
+            <div class="dash-card">
+                <h3><i class="fas fa-tasks"></i> Meu Progresso</h3>
+                <div class="barra-progresso-fundo">
+                    <div class="barra-progresso-cheia" style="width: 70%;"></div>
+                </div>
+                <p>70% Concluído</p>
+                <ul class="lista-tarefas">
+                    <li class="feito">✔ Escolher Destino</li>
+                    <li class="feito">✔ Enviar Passaporte</li>
+                    <li>⬜ Comprar Passagens</li>
+                </ul>
             </div>
-        </header>
 
-        <main class="dashboard-container">
-                {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul class="alertas-container">
-        {% for message in messages %}
-        <li class="alerta-item">{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
-            <section class="dash-header">
-                <h2>Visão Geral do seu Intercâmbio</h2>
-                <p>Faltam <strong>3 documentos</strong> para completar sua aplicação.</p>
-            </section>
-
-            <div class="dash-grid">
-                
-                <div class="dash-card">
-                    <h3><i class="fas fa-tasks"></i> Meu Progresso</h3>
-                    <div class="barra-progresso-fundo">
-                        <div class="barra-progresso-cheia" style="width: 70%;"></div>
-                    </div>
-                    <p>70% Concluído</p>
-                    <ul class="lista-tarefas">
-                        <li class="feito">✔ Escolher Destino</li>
-                        <li class="feito">✔ Enviar Passaporte</li>
-                        <li>⬜ Comprar Passagens</li>
-                    </ul>
+            <div class="dash-card">
+                <h3><i class="fas fa-bell"></i> Avisos Importantes</h3>
+                <div class="aviso-item">
+                    <strong>Visto Americano:</strong>
+                    <p>Novas datas de entrevista liberadas para Março.</p>
                 </div>
-
-                <div class="dash-card">
-                    <h3><i class="fas fa-bell"></i> Avisos Importantes</h3>
-                    <div class="aviso-item">
-                        <strong>Visto Americano:</strong>
-                        <p>Novas datas de entrevista liberadas para Março.</p>
-                    </div>
-                    <div class="aviso-item">
-                        <strong>Reunião:</strong>
-                        <p>Encontro com orientador dia 15/02.</p>
-                    </div>
+                <div class="aviso-item">
+                    <strong>Reunião:</strong>
+                    <p>Encontro com orientador dia 15/02.</p>
                 </div>
-
-                <div class="dash-card">
-                    <h3><i class="fas fa-rocket"></i> Acesso Rápido</h3>
-                    <div class="botoes-grid">
-                        <button class="btn-dash">Enviar Documento</button>
-                        <button class="btn-dash">Falar com Suporte</button>
-                        <button class="btn-dash">Ver Acomodações</button>
-                    </div>
-                </div>
-
             </div>
-        </main>
-    </body>
-    </html>
 
+            <div class="dash-card">
+                <h3><i class="fas fa-rocket"></i> Acesso Rápido</h3>
+                <div class="botoes-grid">
+                    <button class="btn-dash">Enviar Documento</button>
+                    <button class="btn-dash">Falar com Suporte</button>
+                    <button class="btn-dash">Ver Acomodações</button>
+                </div>
+            </div>
 
+        </div>
+    </main>
+</body>
+</html>

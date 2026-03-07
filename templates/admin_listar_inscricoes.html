@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrições Recebidas - Admin SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_inscricoes') }}" style="color: #ffc107;">Avaliar Inscrições</a></li>
+                <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 class="titulo-secao">Inscrições Recebidas</h2>
+        <p class="subtitulo">Avalie as candidaturas e documentos dos alunos.</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class="alertas-container" style="max-width: 1000px; margin: 0 auto 20px auto;">
+            {% for message in messages %}
+              <li class="alerta-item">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <div class="card-tabela"> 
+            <table>
+                <thead>
+                    <tr>
+                        <th>ALUNO</th>
+                        <th>EDITAL</th>
+                        <th>CRA</th>
+                        <th>STATUS</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inscricao in inscricoes %}
+                    <tr>
+                        <td><strong>{{ inscricao.usuario.nome }}</strong></td>
+                        <td>{{ inscricao.edital.titulo }}</td>
+                        <td>{{ inscricao.cra }}</td>
+                        <td>
+                            <span class="badge {% if inscricao.status == 'Aprovado' %}validado{% elif inscricao.status == 'Reprovado' %}encerrado{% else %}pendente{% endif %}">
+                                {{ inscricao.status }}
+                            </span>
+                        </td>
+                        <td class="acoes">
+                            <a href="{{ url_for('admin_avaliar_inscricao', id=inscricao.id) }}" class="btn-dash" style="text-decoration: none; padding: 8px 15px; font-size: 13px;">🔍 Analisar</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999; padding: 30px;">
+                            Nenhuma inscrição recebida ainda.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

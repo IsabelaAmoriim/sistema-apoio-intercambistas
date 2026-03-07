@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscrição - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form" style="max-width: 700px;">
+            <h2 class="titulo-form">Candidatura: {{ edital.titulo }}</h2>
+            <p class="subtitulo" style="margin-bottom: 20px;">Preencha os dados do processo seletivo para concorrer a uma das vagas.</p>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('inscrever_edital', id=edital.id) }}" method="POST">
+                
+                <div class="form-group">
+                    <label><i class="fas fa-graduation-cap"></i> Qual é o seu CRA (Coeficiente de Rendimento)?</label>
+                    <input type="number" name="cra" step="0.01" min="0" max="100" placeholder="Ex: 80.5" required>
+                    <small style="color: rgb(102, 102, 102); font-size: 12px; margin-top: 5px;">Digite a sua média geral exata conforme o seu histórico.</small>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label><i class="fas fa-pen-fancy"></i> Carta de Motivação</label>
+                    <textarea name="carta_motivacao" rows="8" placeholder="Explique por que motivo você é o candidato ideal para este intercâmbio, quais são os seus objetivos e como esta experiência vai agregar à sua formação..." style="width: 100%; border: 1px solid rgb(224, 224, 224); border-radius: 10px; padding: 14px; font-family: 'Open Sans', sans-serif; resize: vertical;" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-enviar" style="margin-top: 25px;"><i class="fas fa-paper-plane" style="margin-right: 10px;"></i> Submeter Candidatura</button>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -26,6 +26,8 @@
             <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
                 <nav>
             <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
                 <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
                 <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
                 <li><a href="{{ url_for('forum') }}">Fórum</a></li>
@@ -40,36 +42,29 @@
         <main class="container-forum">
             <div class="header-forum">
                 <h2 style="color: #1a0963; margin: 0;">Fórum de Discussão</h2>
-                <a href="#" class="btn-novo-topico">+ Novo Tópico</a>
+                <a href="{{ url_for('forum_escrever') }}" class="btn-novo-topico">+ Novo Tópico</a>
             </div>
 
             <div class="card-forum">
+                {% for topico in topicos %}
                 <div class="topico-linha">
                     <div class="topico-info">
-                        <h3>Dicas para o Visto Americano</h3>
-                        <p>Postado há 2 horas por João Silva</p>
+                        <h3>{{ topico.titulo }}</h3>
+                        <p>Postado em {{ topico.data_criacao.strftime('%d/%m/%Y às %H:%M') }} por <strong>{{ topico.autor.nome }}</strong></p>
                     </div>
-                    <div class="autor-info">Último: Maria Oliveira</div>
-                    <div class="respostas-info">12 respostas</div>
-                </div>
-
-                <div class="topico-linha">
-                    <div class="topico-info">
-                        <h3>Moradia em Portugal: Onde procurar?</h3>
-                        <p>Postado há 5 horas por Clara Magalhães</p>
+                    <div class="autor-info">
+                        <span style="color: #999; font-style: italic;">{{ topico.conteudo[:40] }}...</span>
                     </div>
-                    <div class="autor-info">Último: Pedro Santos</div>
-                    <div class="respostas-info">8 respostas</div>
-                </div>
-
-                <div class="topico-linha">
-                    <div class="topico-info">
-                        <h3>Dúvidas sobre o Seguro Saúde</h3>
-                        <p>Postado ontem por Ricardo Lima</p>
+                    <div class="respostas-info">
+                        <span style="color: rgb(24, 6, 96); font-weight: bold; cursor: pointer;">Ler Tópico ➔</span>
                     </div>
-                    <div class="autor-info">Último: Ana Costa</div>
-                    <div class="respostas-info">3 respostas</div>
                 </div>
+                {% else %}
+                <div style="text-align: center; padding: 30px; color: #666;">
+                    <i class="fas fa-comments" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
+                    <p>Nenhum tópico criado ainda. Seja o primeiro a compartilhar uma dúvida ou dica!</p>
+                </div>
+                {% endfor %}
             </div>
         </main>
     </body>
