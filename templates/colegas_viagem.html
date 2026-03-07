@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Colegas de Viagem - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="dash-header" style="text-align: center;">
+            <h2 style="color: rgb(24, 6, 96);"><i class="fas fa-plane-departure"></i> Conexões para: {{ pais }}</h2>
+            <p>Estes são os estudantes que também foram aprovados para o mesmo país que você. Entre em contato para dividirem moradia, voos ou apenas para fazerem amizade!</p>
+        </section>
+
+        <div class="grid-editais">
+            {% for colega in colegas %}
+                <div class="card-edital" style="text-align: center; padding: 30px 20px;">
+                    <i class="fas fa-user-graduate" style="font-size: 60px; color: rgb(24, 6, 96); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 5px;">{{ colega.usuario.nome }}</h3>
+                    
+                    <div style="background: #f4f4f9; padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                        <p style="margin: 5px 0; font-size: 14px;"><i class="fas fa-university"></i> <strong>Vai para:</strong> {{ colega.edital.universidade.nome }}</p>
+                        <p style="margin: 5px 0; font-size: 14px;"><i class="fas fa-file-contract"></i> <strong>Edital:</strong> {{ colega.edital.titulo }}</p>
+                    </div>
+                    
+                    <a href="mailto:{{ colega.usuario.email }}" class="btn-acao-checklist" style="width: 100%; box-sizing: border-box;">
+                        <i class="fas fa-envelope"></i> Enviar Mensagem
+                    </a>
+                </div>
+            {% else %}
+                <div class="dash-card" style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <i class="fas fa-search" style="font-size: 40px; color: #ccc; margin-bottom: 15px;"></i>
+                    <h3 style="color: rgb(24, 6, 96);">Ainda não há ninguém por aqui!</h3>
+                    <p style="color: #666;">Você é o primeiro aluno aprovado para {{ pais }} neste semestre. Volte aqui em breve para ver novos colegas!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

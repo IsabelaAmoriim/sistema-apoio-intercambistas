@@ -1,103 +1,102 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <title>Sistema de Apoio a Intercambistas</title>
-    </head> 
-    <body>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>SAI - Sistema de Apoio a Intercambistas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head> 
+<body>
+    
+<header>
+    <h1 id="logo">
+        <a href="{{ url_for('home') }}">SAI</a>
+    </h1>
+
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('home') }}">Início</a></li>
+            <li><a href="#recursos">Nossos Recursos</a></li>
+            <li><a href="#comunidade">A Comunidade</a></li>
+            <li><a href="#vantagens">Vantagens</a></li>
+        </ul>
+    </nav>
+
+    <div class="auth-buttons">
+        <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
+        <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
+    </div>
+</header>
+
+<main>
+    <div class="banner-principal">
+        <img src="{{ url_for('static', filename='young-friends-park.jpg') }}" alt="Jovens estudantes no parque">
         
-    <header>
-        <h1 id="logo">
-            <a href="{{ url_for('home') }}">SAI</a>
-        </h1>
-
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('home') }}">Início</a></li>
-                    <li><a href="#recursos">Recursos</a></li>
-                    <li><a href="#comunidade">Comunidade</a></li>
-                    <li><a href="#suporte">Suporte</a></li>
-                </ul>
-            </nav>
-
-        <div class="auth-buttons">
-            <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
-            <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
-        </div>
-    </header>
-
-    <main>
-        <div class="banner-principal">
-            <img src="{{ url_for('static', filename='young-friends-park.jpg') }}" alt="banner principal do sai">
-            
-            <div class="banner-overlay">
+        <div class="banner-overlay">
                 <h1>Sua jornada internacional começa aqui.</h1>
                 <p>O apoio que você precisa para viver a melhor experiência de intercâmbio sem preocupações.</p>
                 <a href="{{ url_for('cadastro') }}" class="botao-acao">Começar Agora</a>
             </div>
-        </div>
+    </div>
 
     <section id="recursos" class="secao-info">
-            <div class="container">
-                <h2>Recursos para sua Jornada</h2>
-                <div class="cards-grid">
-                    <div class="card">
-                        <h3>📋 Checklist Interativo</h3>
-                        <p>Organize passaportes, vistos e seguros de forma simples para não esquecer nada importante.</p>
-                    </div>
-                    <div class="card">
-                        <h3>💰 Calculadora Financeira</h3>
-                        <p>Planeje seu orçamento comparando o custo de vida entre sua cidade atual e o destino desejado.</p>
-                    </div>
-                    <div class="card">
-                        <h3>📍 Mapa de Acolhimento</h3>
-                        <p>Encontre redes de apoio brasileiras, hospitais e embaixadas em tempo real durante sua estadia.</p>
-                    </div>
+        <div class="container">
+            <h2 style="color: rgb(24, 6, 96); font-family: 'Playfair Display', serif; font-size: 2.2rem;">Apoio de Ponta a Ponta</h2>
+            <div class="cards-grid">
+                <div class="card" style="border-top: 4px solid #28a745;">
+                    <i class="fas fa-clipboard-check" style="font-size: 40px; color: #28a745; margin-bottom: 15px;"></i>
+                    <h3 style="color: rgb(24, 6, 96);">Checklist Inteligente</h3>
+                    <p>Diga adeus à confusão. O sistema gera uma lista exata de documentos exigidos pelo seu edital, com barra de progresso em tempo real.</p>
+                </div>
+                <div class="card" style="border-top: 4px solid rgb(24, 6, 96);">
+                    <i class="fas fa-user-friends" style="font-size: 40px; color: rgb(24, 6, 96); margin-bottom: 15px;"></i>
+                    <h3 style="color: rgb(24, 6, 96);">Rede de Contatos</h3>
+                    <p>Foi aprovado? O nosso <em>Match de Destino</em> conecta você imediatamente com outros estudantes que vão para o mesmo país!</p>
+                </div>
+                <div class="card" style="border-top: 4px solid #ffc107;">
+                    <i class="fas fa-plane-departure" style="font-size: 40px; color: #ffc107; margin-bottom: 15px;"></i>
+                    <h3 style="color: rgb(24, 6, 96);">Apoio Pré-Embarque</h3>
+                    <p>Ao ser aceite, o seu painel transforma-se, mostrando uma contagem regressiva para a viagem e um guia com os próximos passos.</p>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="comunidade" class="secao-info destaque-comunidade">
-            <div class="container">
-                <h2>Comunidade SAI</h2>
-                <div class="conteudo-comunidade">
-                    <h3>Conecte-se com o Mundo</h3>
-                    <p>Participe de fóruns exclusivos, troque experiências com quem já voltou e encontre mentorias de veteranos que conhecem o caminho das pedras.</p>
-                    <a href="{{ url_for('cadastro') }}" class="btn-secundario">Explorar Fóruns</a>
+    <section id="comunidade" class="secao-info" style="background-color: #e3f2fd;">
+        <div class="container">
+            <h2 style="color: rgb(24, 6, 96); font-family: 'Playfair Display', serif; font-size: 2.2rem;">Você nunca viaja sozinho</h2>
+            <div style="max-width: 700px; margin: 0 auto;">
+                <p style="font-size: 1.1rem; color: #555; margin-bottom: 30px;">O SAI possui um <strong>Fórum Exclusivo</strong> para tirar dúvidas sobre vistos, pedir indicações de moradia e partilhar a sua experiência com uma comunidade que entende exatamente o que está a passar.</p>
+                <a href="{{ url_for('cadastro') }}" class="btn-secundario">Explorar Tópicos do Fórum</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="vantagens" class="secao-info">
+        <div class="container">
+            <h2 style="color: rgb(24, 6, 96); font-family: 'Playfair Display', serif; font-size: 2.2rem;">Por que escolher o SAI?</h2>
+            <div class="cards-grid">
+                <div class="card-suporte">
+                    <h3 style="color: rgb(24, 6, 96);"><i class="fas fa-file-pdf"></i> Gestão Centralizada</h3>
+                    <p>Envie e acesse os seus PDFs e imagens de qualquer lugar, direto pelo painel.</p>
+                </div>
+                <div class="card-suporte">
+                    <h3 style="color: rgb(24, 6, 96);"><i class="fas fa-search"></i> Transparência</h3>
+                    <p>Acompanhe se os seus documentos estão Pendentes, em Análise ou Validados.</p>
+                </div>
+                <div class="card-suporte">
+                    <h3 style="color: rgb(24, 6, 96);"><i class="fas fa-globe"></i> Diversos Destinos</h3>
+                    <p>Consulte todos os editais de mobilidade abertos em diversas universidades parceiras.</p>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="suporte" class="secao-info">
-            <div class="container">
-                <h2>Suporte e Segurança</h2>
-                <div class="cards-grid">
-                    <div class="card-suporte">
-                        <h3>🚑 Emergência</h3>
-                        <p>Acesso rápido a contatos críticos e orientações de segurança internacional.</p>
-                    </div>
-                    <div class="card-suporte">
-                        <h3>💬 Chat de Ajuda</h3>
-                        <p>Nossa equipe está disponível para tirar dúvidas sobre o uso do sistema.</p>
-                    </div>
-                    <div class="card-suporte">
-                        <h3>❓ FAQ</h3>
-                        <p>Respostas diretas para as perguntas mais comuns sobre o processo de intercâmbio.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+    <footer style="background-color: rgb(24, 6, 96); color: whitesmoke; padding: 20px 0; text-align: center; margin-top: 40px;">
+        <p style="margin: 0;">&copy; 2026 SAI - Sistema de Apoio a Intercambistas. Desenvolvido para facilitar sonhos.</p>
+    </footer>
+</main>
 
-
-        <footer>
-            <p>&copy; 2026 SAI - Sistema de Apoio a Intercambistas.</p>
-        </footer>
-    </main>
-
-    </body>
-    </html>
-
-
-
+</body>
+</html>

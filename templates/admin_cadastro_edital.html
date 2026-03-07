@@ -94,10 +94,11 @@
                 <div class="form-group">
                     <label>Documentos Exigidos</label>
                     <div class="checkbox-group" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                        {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
                         {% for doc in documentos %}
                             <label style="font-weight: normal; display: flex; align-items: center; gap: 10px;">
                                 <input type="checkbox" name="documentos_id" value="{{ doc.id }}">
-                                {{ doc.nome }} ({{ doc.descricao }}) </label>
+                                {{ doc.nome }} ({{ nomes_categorias.get(doc.descricao, doc.descricao) }}) </label>
                         {% else %}
                             <p style="font-size: 0.9em; color: #666;">Nenhum documento cadastrado no sistema.</p>
                         {% endfor %}

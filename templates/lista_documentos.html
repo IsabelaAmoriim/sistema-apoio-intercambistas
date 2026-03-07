@@ -55,10 +55,12 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                    
                     {% for doc in documentos %}
                     <tr>
                         <td><strong>{{ doc.tipo_documento.nome }}</strong></td>
-                        <td>{{ doc.tipo_documento.descricao or '-' }}</td>
+                        <td>{{ nomes_categorias.get(doc.tipo_documento.descricao, doc.tipo_documento.descricao) or '-' }}</td>
                         <td>
                             <span class="badge {{ doc.status|lower|replace(' ', '-') }}">
                                 {{ doc.status }}

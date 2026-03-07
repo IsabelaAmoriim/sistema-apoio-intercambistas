@@ -46,7 +46,7 @@
                 {% if inscricao.status == 'Aprovado' %}
                     <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745; margin-top: 15px;">
                         <h3 style="margin: 0 0 5px 0;">🎉 PARABÉNS! VOCÊ FOI APROVADO!</h3>
-                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> foi aceite. Fique atento ao seu email para os próximos passos da viagem.</p>
+                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> foi aceita. Fique atento ao seu email para os próximos passos da viagem.</p>
                     </div>
                 {% elif inscricao.status == 'Reprovado' %}
                     <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border-left: 5px solid #dc3545; margin-top: 15px;">
@@ -56,7 +56,7 @@
                 {% else %}
                     <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107; margin-top: 15px;">
                         <h3 style="margin: 0 0 5px 0;">⏳ Em Análise</h3>
-                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> está a ser avaliada pela nossa equipa. Acompanhe os detalhes através do seu Checklist.</p>
+                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> está a ser avaliada pela nossa equipe. Acompanhe os detalhes através do seu Checklist.</p>
                     </div>
                 {% endif %}
             {% else %}
@@ -69,39 +69,105 @@
             
             <div class="dash-card">
                 <h3><i class="fas fa-tasks"></i> Meu Progresso</h3>
-                <div class="barra-progresso-fundo">
-                    <div class="barra-progresso-cheia" style="width: 70%;"></div>
-                </div>
-                <p>70% Concluído</p>
-                <ul class="lista-tarefas">
-                    <li class="feito">✔ Escolher Destino</li>
-                    <li class="feito">✔ Enviar Passaporte</li>
-                    <li>⬜ Comprar Passagens</li>
-                </ul>
+                {% if inscricao %}
+                    <div class="barra-progresso-fundo">
+                        <div class="barra-progresso-cheia" style="width: {{ progresso }}%;"></div>
+                    </div>
+                    <p>{{ progresso }}% Concluído</p>
+                    <ul class="lista-tarefas">
+                        {% for tarefa in tarefas_resumo %}
+                            {% if tarefa.feito %}
+                                <li class="feito">✔ {{ tarefa.nome }}</li>
+                            {% else %}
+                                <li>⬜ {{ tarefa.nome }}</li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if progresso < 100 %}
+                            <li style="font-size: 13px; margin-top: 15px; text-align: center;">
+                                <a href="{{ url_for('checklist') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold;">Ver checklist completo ➔</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                {% else %}
+                    <p style="color: #666;">Você ainda não iniciou nenhuma candidatura.</p>
+                    <a href="{{ url_for('editais_abertos') }}" class="btn-dash" style="text-decoration: none; display: inline-block; margin-top: 15px; text-align: center; width: 100%; box-sizing: border-box;">Ver Editais Abertos</a>
+                {% endif %}
             </div>
 
             <div class="dash-card">
                 <h3><i class="fas fa-bell"></i> Avisos Importantes</h3>
-                <div class="aviso-item">
-                    <strong>Visto Americano:</strong>
-                    <p>Novas datas de entrevista liberadas para Março.</p>
-                </div>
-                <div class="aviso-item">
-                    <strong>Reunião:</strong>
-                    <p>Encontro com orientador dia 15/02.</p>
-                </div>
+                {% if inscricao %}
+                    {% if inscricao.status == 'Aprovado' %}
+                    <div style="background-color: #d4edda; color: #155724; padding: 20px; border-radius: 10px; border-left: 6px solid #28a745; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <div>
+                                <h3 style="margin: 0 0 5px 0; font-size: 22px;">🎉 PARABÉNS! VOCÊ FOI APROVADO!</h3>
+                                <p style="margin: 0;">A sua viagem para a <strong>{{ inscricao.edital.universidade.nome }}</strong> ({{ inscricao.edital.universidade.pais_origem.nome }}) está confirmada!</p>
+                            </div>
+                            
+                            {% if dias_para_viagem is not none %}
+                            <div style="background: white; padding: 10px 20px; border-radius: 8px; text-align: center; border: 2px solid #28a745;">
+                                <span style="display: block; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #666;">Faltam apenas</span>
+                                <span style="display: block; font-size: 28px; font-weight: bold; color: #28a745;">{{ dias_para_viagem }} dias</span>
+                                <span style="display: block; font-size: 12px; color: #666;">para o intercâmbio</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div style="margin-top: 20px; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 8px;">
+                            <h4 style="margin: 0 0 10px 0; color: #155724;"><i class="fas fa-suitcase-rolling"></i> Checklist do Viajante (Próximos Passos):</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                                <li><strong>Passagens:</strong> Comece a monitorizar os preços dos voos (verifique se há descontos para estudantes).</li>
+                                <li><strong>Seguro Saúde:</strong> É obrigatório contratar um seguro internacional com cobertura total.</li>
+                                <li><strong>Finanças:</strong> Desbloqueie os seus cartões para uso no exterior ou abra uma conta internacional.</li>
+                                <li><strong>Moradia:</strong> Use o botão "Rede de Contatos" abaixo para encontrar colegas e dividirem um apartamento!</li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% elif inscricao.status == 'Reprovado' %}
+                        <div class="aviso-item" style="border-left-color: #dc3545; background-color: #f8d7da;">
+                            <strong style="color: #721c24;">Aviso do Sistema:</strong>
+                            <p style="color: #721c24;">Infelizmente a sua candidatura foi encerrada.</p>
+                        </div>
+                    {% else %}
+                        {% if progresso < 100 %}
+                            <div class="aviso-item">
+                                <strong>Documentos Pendentes:</strong>
+                                <p>Faltam {{ documentos_faltando }} documento(s) para completar a sua aplicação.</p>
+                            </div>
+                        {% else %}
+                            <div class="aviso-item" style="border-left-color: #17a2b8; background-color: #d1ecf1;">
+                                <strong style="color: #0c5460;">Análise em Andamento:</strong>
+                                <p style="color: #0c5460;">Tudo certo com os documentos! Aguarde a avaliação do administrador.</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    <div class="aviso-item" style="border-left-color: #17a2b8; background-color: #d1ecf1;">
+                        <strong style="color: #0c5460;">Bem-vindo ao SAI!</strong>
+                        <p style="color: #0c5460;">Acesse a aba de Editais para iniciar o seu intercâmbio hoje.</p>
+                    </div>
+                {% endif %}
             </div>
 
             <div class="dash-card">
                 <h3><i class="fas fa-rocket"></i> Acesso Rápido</h3>
                 <div class="botoes-grid">
-                    <button class="btn-dash">Enviar Documento</button>
-                    <button class="btn-dash">Falar com Suporte</button>
-                    <button class="btn-dash">Ver Acomodações</button>
-                </div>
+                    <a href="{{ url_for('cadastro_documento') }}" class="btn-dash" style="text-align: center; text-decoration: none; display: block;">Enviar Documento</a>
+                    <a href="{{ url_for('forum') }}" class="btn-dash" style="text-align: center; text-decoration: none; display: block;">Acessar o Fórum</a>
+                    <a href="{{ url_for('editais_abertos') }}" class="btn-dash" style="text-align: center; text-decoration: none; display: block;">Ver Oportunidades</a>
+                    
+                    {% if inscricao and inscricao.status == 'Aprovado' %}
+                        <a href="{{ url_for('colegas_viagem') }}" class="btn-dash" style="text-align: center; text-decoration: none; display: block; background-color: #28a745; border-color: #28a745; color: white;">
+                            <i class="fas fa-user-friends"></i> Rede de Contatos
+                        </a>
+                    {% endif %}
+                    </div>
             </div>
-
-        </div>
+        </div> </main>
+</body>
+</html>
     </main>
 </body>
 </html>

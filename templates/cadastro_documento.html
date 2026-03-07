@@ -42,13 +42,15 @@
             {% if pendentes %}
                 <form action="{{ url_for('cadastro_documento') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label>Qual documento exigido você está enviando?</label>
-                        <select name="documento_id" required>
+                        <label>Qual documento exigido você está enviando?<select name="documento_id" required>
                             <option value="">Selecione o documento pendente...</option>
+                            
+                            {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                            
                             {% for doc in pendentes %}
-                                <option value="{{ doc.id }}">{{ doc.nome }} ({{ doc.descricao }})</option>
+                                <option value="{{ doc.id }}">{{ doc.nome }} ({{ nomes_categorias.get(doc.descricao, doc.descricao) }})</option>
                             {% endfor %}
-                        </select>
+                        </select></label>
                     </div>
                     
                     <div class="form-group campo-arquivo" style="margin-top: 15px;">

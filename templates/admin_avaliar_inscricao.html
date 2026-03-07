@@ -35,7 +35,15 @@
             <a href="{{ url_for('admin_listar_inscricoes') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold; margin-bottom: 20px; display: inline-block;">
                 ⬅ Voltar para Lista
             </a>
-            
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container" style="margin-bottom: 20px;">
+                {% for message in messages %}
+                <li class="alerta-item" style="background-color: #f8d7da; color: #721c24; border-left: 5px solid #dc3545;">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
             <h2 class="titulo-form" style="margin-bottom: 10px;">Candidatura de {{ inscricao.usuario.nome }}</h2>
             <p class="subtitulo" style="margin-bottom: 30px;"><strong>Edital:</strong> {{ inscricao.edital.titulo }} | <strong>Status Atual:</strong> {{ inscricao.status }}</p>
 
@@ -51,9 +59,11 @@
             <div style="margin-bottom: 30px;">
                 <h3 style="color: rgb(24, 6, 96); border-bottom: 2px solid #eee; padding-bottom: 10px;">Documentos Enviados pelo Aluno</h3>
                 <ul style="list-style: none; padding: 0;">
+                    {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                    
                     {% for doc in documentos %}
                     <li style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee;">
-                        <span>📄 <strong>{{ doc.tipo_documento.nome }}</strong> ({{ doc.tipo_documento.descricao }})</span>
+                        <span>📄 <strong>{{ doc.tipo_documento.nome }}</strong> ({{ nomes_categorias.get(doc.tipo_documento.descricao, doc.tipo_documento.descricao) }})</span>
                         <a href="{{ url_for('admin_baixar_documento', id=doc.id) }}" class="btn-dash" style="text-decoration: none; padding: 8px 15px; font-size: 13px;">Baixar Arquivo</a>
                     </li>
                     {% else %}

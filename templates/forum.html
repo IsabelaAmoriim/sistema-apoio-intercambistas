@@ -56,7 +56,7 @@
                         <span style="color: #999; font-style: italic;">{{ topico.conteudo[:40] }}...</span>
                     </div>
                     <div class="respostas-info">
-                        <span style="color: rgb(24, 6, 96); font-weight: bold; cursor: pointer;">Ler Tópico ➔</span>
+                        <a href="{{ url_for('forum_ler_topico', id=topico.id) }}" style="color: rgb(24, 6, 96); font-weight: bold; cursor: pointer; text-decoration: none;">Ler Tópico ➔</a>
                     </div>
                 </div>
                 {% else %}

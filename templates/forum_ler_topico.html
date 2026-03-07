@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ topico.titulo }} - Fórum SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <a href="{{ url_for('forum') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold; margin-bottom: 20px; display: inline-block;">
+            <i class="fas fa-arrow-left"></i> Voltar para o Fórum
+        </a>
+
+        <div class="card-form" style="max-width: 800px; text-align: left; padding: 40px;">
+            <h2 style="color: rgb(24, 6, 96); margin-top: 0; margin-bottom: 10px; font-size: 26px;">{{ topico.titulo }}</h2>
+            
+            <div style="border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 25px; color: #666; font-size: 14px;">
+                <i class="fas fa-user-circle" style="margin-right: 5px;"></i> Postado por <strong style="color: rgb(24, 6, 96);">{{ topico.autor.nome }}</strong> em {{ topico.data_criacao.strftime('%d/%m/%Y às %H:%M') }}
+            </div>
+
+            <div style="font-size: 16px; line-height: 1.6; color: #333; white-space: pre-wrap;">{{ topico.conteudo }}</div>
+        </div>
+    </main>
+</body>
+</html>

@@ -95,13 +95,14 @@
                 <div class="form-group">
                     <label>Documentos Exigidos</label>
                     <div class="checkbox-group" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                        {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
                         {% for doc in documentos %}
                             <label>
                                 <input type="checkbox"
                                        name="documentos_id"
                                        value="{{ doc.id }}"
                                        {% if doc in edital.documentos_exigidos %}checked{% endif %}>
-                                {{ doc.nome }} ({{ doc.descricao }})
+                                {{ doc.nome }} ({{ nomes_categorias.get(doc.descricao, doc.descricao) }})
                             </label>
                         {% endfor %}
                     </div>

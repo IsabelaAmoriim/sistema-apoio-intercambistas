@@ -892,3 +892,21 @@ form {
 .checkbox-group label:hover {
     color: rgb(24, 6, 96); 
 }
+
+.btn-acao-checklist { 
+    background-color: rgb(24, 6, 96); 
+    color: white; 
+    padding: 12px 25px; 
+    border-radius: 30px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    display: inline-block; 
+    transition: 0.3s; 
+    text-align: center;
+}
+
+.btn-acao-checklist:hover { 
+    background-color: rgb(40, 10, 150); 
+    transform: translateY(-2px); 
+    color: white; 
+}

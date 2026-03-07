@@ -69,10 +69,11 @@
                     <div class="secao-info-edital">
                         <h4><i class="fas fa-file-contract"></i> Documentação Exigida</h4>
                         <p>Para se candidatar a este edital, você precisará providenciar os seguintes documentos no seu Checklist:</p>
-                        
                         <ul>
+                            {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                            
                             {% for doc in edital.documentos_exigidos %}
-                                <li><strong>{{ doc.nome }}</strong> ({{ doc.descricao }})</li>
+                                <li><strong>{{ doc.nome }}</strong> ({{ nomes_categorias.get(doc.descricao, doc.descricao) }})</li>
                             {% else %}
                                 <li><em>Nenhum documento específico cadastrado.</em></li>
                             {% endfor %}

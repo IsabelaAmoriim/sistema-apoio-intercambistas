@@ -99,10 +99,47 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    # Busca a inscrição do aluno (se ele tiver alguma) para podermos ler o status
     inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
     
-    return render_template("dashboard.html", inscricao=inscricao)
+    progresso = 0
+    tarefas_resumo = []
+    documentos_faltando = 0
+    dias_para_viagem = None # <--- NOVA VARIÁVEL PARA A CONTAGEM
+
+    if inscricao:
+        edital = inscricao.edital
+        documentos_exigidos = edital.documentos_exigidos
+        docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+        
+        tarefas_concluidas = 1
+        total_tarefas = 1 + len(documentos_exigidos)
+        
+        tarefas_resumo.append({"nome": "Inscrição no Edital", "feito": True})
+        
+        for doc in documentos_exigidos:
+            if doc.id in docs_enviados_ids:
+                tarefas_concluidas += 1
+                tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": True})
+            else:
+                documentos_faltando += 1
+                tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": False})
+        
+        progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+        tarefas_resumo = tarefas_resumo[:3]
+
+        # --- NOVA LÓGICA DE APOIO: CONTAGEM REGRESSIVA ---
+        if inscricao.status == 'Aprovado' and edital.data_ini_programa:
+            hoje = datetime.utcnow().date()
+            diferenca = edital.data_ini_programa - hoje
+            dias_para_viagem = diferenca.days
+        # ------------------------------------------------
+
+    return render_template("dashboard.html", 
+                           inscricao=inscricao, 
+                           progresso=progresso, 
+                           tarefas_resumo=tarefas_resumo, 
+                           documentos_faltando=documentos_faltando,
+                           dias_para_viagem=dias_para_viagem)
 @app.route("/documentos")
 @login_required
 def lista_documentos():
@@ -228,6 +265,13 @@ def forum():
     # Busca todos os tópicos no banco, ordenados do mais recente para o mais antigo
     topicos_db = Topico.query.order_by(Topico.data_criacao.desc()).all()
     return render_template("forum.html", topicos=topicos_db)
+
+@app.route("/forum/topico/<int:id>")
+@login_required
+def forum_ler_topico(id):
+    # Busca o tópico específico pelo ID que veio no link
+    topico_db = Topico.query.get_or_404(id)
+    return render_template("forum_ler_topico.html", topico=topico_db)
 
 @app.route("/forum/escrever", methods=['GET', 'POST'])
 @login_required
@@ -597,11 +641,40 @@ def admin_baixar_documento(id):
         return redirect(url_for('dashboard'))
         
     doc = DocumentoUsuario.query.get_or_404(id)
+    
+    # Verifica se o caminho existe e previne erros de barras no Windows
     if doc.caminho_arquivo and os.path.exists(doc.caminho_arquivo):
-        return send_file(doc.caminho_arquivo, as_attachment=True)
+        caminho_absoluto = os.path.abspath(doc.caminho_arquivo)
+        return send_file(caminho_absoluto, as_attachment=True)
     else:
-        flash("Erro: O arquivo não foi encontrado no servidor.")
-        return redirect(request.referrer)
+        flash("Erro: O arquivo físico não foi encontrado na pasta do sistema! O aluno precisa reenviar o documento.")
+        return redirect(request.referrer or url_for('admin_listar_inscricoes'))
+
+# --- ROTA DE MATCH DE DESTINO (REDE DE CONTATOS) ---
+@app.route("/colegas")
+@login_required
+def colegas_viagem():
+    # 1. Procura se o aluno atual tem uma inscrição aprovada
+    minha_inscricao = Inscricao.query.filter_by(usuario_id=current_user.id, status='Aprovado').first()
+
+    if not minha_inscricao:
+        flash("Você precisa ter uma candidatura aprovada para acessar a Rede de Contatos!")
+        return redirect(url_for('dashboard'))
+
+    # 2. Descobre qual é o país de destino dele
+    meu_pais_id = minha_inscricao.edital.universidade.pais_id
+    nome_do_pais = minha_inscricao.edital.universidade.pais_origem.nome
+
+    # 3. Busca todos os outros alunos aprovados
+    todas_aprovadas = Inscricao.query.filter(Inscricao.status == 'Aprovado', Inscricao.usuario_id != current_user.id).all()
+    
+    colegas = []
+    for inscricao in todas_aprovadas:
+        # Se o país do colega for igual ao meu, dá match!
+        if inscricao.edital.universidade.pais_id == meu_pais_id:
+            colegas.append(inscricao)
+
+    return render_template("colegas_viagem.html", colegas=colegas, pais=nome_do_pais)
 
 if __name__ == "__main__":
     app.run(debug=True)
