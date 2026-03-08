@@ -15,9 +15,9 @@ class Usuario(UserMixin, db.Model):
     senha_hash = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     
-    # relacionamento pra classe DocumentoUsuario
     documentos_enviados = db.relationship('DocumentoUsuario', backref='dono_do_documento', lazy=True)
     inscricoes = db.relationship('Inscricao', backref='usuario', lazy=True)
+    topicos = db.relationship('Topico', backref='autor', lazy=True)
     
     @staticmethod
     def buscar_por_email(email_procurado):
@@ -29,7 +29,6 @@ class Usuario(UserMixin, db.Model):
     def verificar_senha(self, senha_digitada):
         return check_password_hash(self.senha_hash, senha_digitada)
     
-    # verificar se tá inscrito num edital
     def esta_inscrito_no_edital(self, edital_id):
         inscricao = Inscricao.query.filter_by(
             usuario_id=self.id,
@@ -37,7 +36,6 @@ class Usuario(UserMixin, db.Model):
         ).first()
         return inscricao is not None
     
-    # retornar a inscrição ativa do usuário em um edital
     def get_inscricao_ativa(self, edital_id):
         return Inscricao.query.filter_by(
             usuario_id=self.id,
@@ -45,7 +43,6 @@ class Usuario(UserMixin, db.Model):
             status='Ativa'
         ).first()
     
-    # retornar lista de nomes de documentos faltantes pra um edital
     def documentos_faltantes_para_edital(self, edital):
         docs_enviados = DocumentoUsuario.query.filter_by(
             usuario_id=self.id
@@ -58,9 +55,13 @@ class Usuario(UserMixin, db.Model):
                 faltantes.append(doc.nome)
         return faltantes
     
-    # checar se enviou todos os documentos de um edital
     def enviou_todos_documentos_edital(self, edital):
         return len(self.documentos_faltantes_para_edital(edital)) == 0
+    
+    def get_inscricao_mais_recente(self):
+        return Inscricao.query.filter_by(
+            usuario_id=self.id
+        ).order_by(Inscricao.data_inscricao.desc()).first()
 
 
 class Pais(db.Model):
@@ -70,10 +71,8 @@ class Pais(db.Model):
     iso = db.Column(db.String(2), unique=True)
     desc = db.Column(db.String(500), nullable=True)
     
-    # relacionamento com universidade
     universidades = db.relationship('Universidade', backref='pais_origem', lazy=True)
     
-    # métodos de busca
     @staticmethod
     def buscar_por_nome(nome_procurado):
         return Pais.query.filter_by(nome=nome_procurado).first()
@@ -99,7 +98,6 @@ class Documento(db.Model):
     obrigatoriedade = db.Column(db.Boolean, default=True)
     pais_id = db.Column(db.Integer, db.ForeignKey('pais.id'), nullable=True)
     
-    # relacionamentos
     envios_dos_alunos = db.relationship('DocumentoUsuario', backref='tipo_documento', lazy=True)
 
 
@@ -112,7 +110,6 @@ class DocumentoUsuario(db.Model):
     status = db.Column(db.String(20), default="Pendente")
 
 
-# tabela associativa da relação muitos -> muitos entre edital e documento
 edital_documento = db.Table(
     'edital_documento',
     db.Column('edital_id', db.Integer, db.ForeignKey('edital.id'), primary_key=True),
@@ -132,11 +129,9 @@ class Edital(db.Model):
     data_fim_programa = db.Column(db.Date, nullable=False)
     vagas = db.Column(db.Integer, nullable=False)
 
-    # cada edital tem uma universidade
     universidade_id = db.Column(db.Integer, db.ForeignKey('universidade.id'), nullable=False)
     universidade = db.relationship('Universidade', backref='editais')
 
-    # relação muitos -> muitos com documentos
     documentos_exigidos = db.relationship(
         'Documento',
         secondary=edital_documento,
@@ -144,70 +139,68 @@ class Edital(db.Model):
         lazy=True
     )
     
-    # relacionamento com inscrições
     inscricoes = db.relationship('Inscricao', backref='edital', lazy=True)
     
-    # verifica se tá no período de inscrição
     def esta_no_periodo_inscricao(self):
         hoje = date.today()
         return self.data_ini_edital <= hoje <= self.data_fim_edital
     
-    # verifica se as inscrições ainda não começaram
     def inscricoes_nao_iniciadas(self):
         return date.today() < self.data_ini_edital
     
-    # verifica se as inscrições já encerraram
     def inscricoes_encerradas(self):
         return date.today() > self.data_fim_edital
     
-    # retorna o número de inscrições ativas
-    def contar_inscricoes_ativas(self):
-        return Inscricao.query.filter_by(
-            edital_id=self.id,
-            status='Ativa'
+    def contar_inscricoes_ocupadas(self):
+        return Inscricao.query.filter(
+            Inscricao.edital_id == self.id,
+            Inscricao.status.in_(['Ativa', 'Aprovado', 'Em Análise'])
         ).count()
     
-    # verifica se ainda há vagas disponíveis
     def tem_vagas_disponiveis(self):
-        return self.contar_inscricoes_ativas() < self.vagas
+        return self.contar_inscricoes_ocupadas() < self.vagas
+    
+    def tem_candidatos_aprovados(self):
+        return Inscricao.query.filter_by(
+            edital_id=self.id,
+            status='Aprovado'
+        ).first() is not None
 
 
 class Inscricao(db.Model):
     __tablename__ = 'inscricao'
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    data_inscricao = db.Column(db.DateTime, default=db.func.now())
+    data_inscricao = db.Column(db.DateTime, default=lambda: datetime.now())
     edital_id = db.Column(db.Integer, db.ForeignKey('edital.id'), nullable=False)
     status = db.Column(db.String(30), default='Pendente')
     
-    # cancela a inscrição
+    cra = db.Column(db.Float, nullable=True)
+    carta_motivacao = db.Column(db.Text, nullable=True)
+    
     def cancelar(self):
         self.status = 'Cancelada'
         db.session.commit()
     
-    # ativa a inscrição
     def ativar(self):
         self.status = 'Ativa'
         db.session.commit()
     
-    # verifica se tá ativa
     def esta_ativa(self):
         return self.status == 'Ativa'
+
 
 class Topico(db.Model):
     __tablename__ = 'topico'
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200), nullable=False)
     conteudo = db.Column(db.Text, nullable=False)
-    data_criacao = db.Column(db.DateTime, default=datetime.utcnow)
+    data_criacao = db.Column(db.DateTime, default=lambda: datetime.now())
     
-    # O tópico pertence a um usuário
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
-    autor = db.relationship('Usuario', backref=db.backref('topicos', lazy=True))
 
 
 def seed_database():
-    """Popula o banco com usuários administradores padrões"""
     admins = [
         {"nome": "Admin Breno", "email": "breno@gmail.com", "cpf": "00000000000", "senha": "breno123"},
         {"nome": "Admin Clara", "email": "clara@gmail.com", "cpf": "00000000001", "senha": "clara123"},
@@ -217,7 +210,6 @@ def seed_database():
     ]
 
     for data in admins:
-        # só cria se o e-mail não estiver no banco
         if not Usuario.query.filter_by(email=data["email"]).first():
             novo_admin = Usuario(
                 nome=data["nome"],
