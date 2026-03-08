@@ -932,7 +932,7 @@ class AdminAvaliarInscricao(MethodView):
             flash(f"Candidatura de {inscricao.usuario.nome} REPROVADA.")
             
         db.session.commit()
-        return redirect(url_for('admin_listar_editais'))
+        return redirect(request.referrer or url_for('admin_listar_editais'))
 
 app.add_url_rule('/admin/inscricao/<int:id>', view_func=AdminAvaliarInscricao.as_view('admin_avaliar_inscricao'))
 
@@ -958,6 +958,7 @@ class AdminAvaliarDocumento(MethodView):
 
 app.add_url_rule('/admin/documento/<int:id>/avaliar', view_func=AdminAvaliarDocumento.as_view('admin_avaliar_documento'))
 
+
 class AdminBaixarDocumento(MethodView):
     decorators = [login_required]
 
@@ -975,6 +976,7 @@ class AdminBaixarDocumento(MethodView):
             return redirect(request.referrer or url_for('admin_listar_editais'))
 
 app.add_url_rule('/admin/baixar-documento/<int:id>', view_func=AdminBaixarDocumento.as_view('admin_baixar_documento'))
+
 
 class ColegasViagem(MethodView):
     decorators = [login_required]
@@ -1003,6 +1005,7 @@ class ColegasViagem(MethodView):
         return render_template("colegas_viagem.html", colegas=colegas, pais=nome_do_pais)
 
 app.add_url_rule('/colegas', view_func=ColegasViagem.as_view('colegas_viagem'))
+
 
 if __name__ == "__main__":
     with app.app_context():
