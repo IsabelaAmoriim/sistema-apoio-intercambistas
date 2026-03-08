@@ -1,11 +1,12 @@
 import os
 import uuid
-from datetime import datetime
-from werkzeug.utils import secure_filename
 from datetime import datetime, date
+from werkzeug.utils import secure_filename
 
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask.views import MethodView
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+
 from models import (
     db, Usuario, Pais, Universidade,
     Documento, DocumentoUsuario, seed_database, Edital, Inscricao, Topico
@@ -36,135 +37,185 @@ login_manager.login_view = "login"
 def load_user(id):
     return Usuario.query.get(int(id))
 
-with app.app_context():
-    db.create_all()
-    seed_database()
 
-@app.route("/")
-@app.route("/index")
-def home():
-    return render_template("index.html")
+class Home(MethodView):
+    def get(self):
+        return render_template("index.html")
 
-@app.route("/cadastro", methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'GET':
+app.add_url_rule('/', view_func=Home.as_view('home'))
+app.add_url_rule('/index', view_func=Home.as_view('index'))
+
+
+class Cadastro(MethodView):
+    def get(self):
         return render_template("cadastro.html")
-    
-    nome = request.form['nome']
-    email = request.form['email']
-    cpf = request.form['cpf']
-    senha = request.form['senha']
-    
-    usuario_existente = Usuario.buscar_por_email(email)
-    if usuario_existente:
-        flash("Esse email já está sendo utilizado")
-        return render_template("cadastro.html", erro=True)
-    
-    novo_usuario = Usuario(nome=nome, email=email, cpf=cpf)
-    novo_usuario.definir_senha(senha)
-    
-    db.session.add(novo_usuario)
-    db.session.commit()
-    login_user(novo_usuario)
-    flash("Cadastro realizado com sucesso!")
-    return redirect(url_for('dashboard'))
 
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        return render_template("login.html")
-    
-    email = request.form['email']
-    senha = request.form['senha']
-    usuario = Usuario.buscar_por_email(email)
-    
-    if not usuario or not usuario.verificar_senha(senha):
-        flash("Email ou senha incorretos")
-        return render_template("login.html", erro=True)
-    
-    login_user(usuario)
-    flash("Login realizado com sucesso!")
-    
-    if usuario.is_admin:
-        return redirect(url_for('admin_dashboard'))
-    else:
+    def post(self):
+        nome = request.form.get('nome')
+        email = request.form.get('email')
+        cpf = request.form.get('cpf')
+        senha = request.form.get('senha')
+        
+        if Usuario.buscar_por_email(email):
+            flash("Esse email já está sendo utilizado")
+            return render_template("cadastro.html", erro=True)
+        
+        self._criar_e_logar_usuario(nome, email, cpf, senha)
+        
+        flash("Cadastro realizado com sucesso!")
         return redirect(url_for('dashboard'))
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash("Logout realizado com sucesso")
-    return redirect(url_for("login"))
+    def _criar_e_logar_usuario(self, nome, email, cpf, senha):
+        novo_usuario = Usuario(nome=nome, email=email, cpf=cpf)
+        novo_usuario.definir_senha(senha)
+        
+        db.session.add(novo_usuario)
+        db.session.commit()
+        login_user(novo_usuario)
 
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
-    
-    progresso = 0
-    tarefas_resumo = []
-    documentos_faltando = 0
-    dias_para_viagem = None # <--- NOVA VARIÁVEL PARA A CONTAGEM
+app.add_url_rule('/cadastro', view_func=Cadastro.as_view('cadastro'))
 
-    if inscricao:
-        edital = inscricao.edital
-        documentos_exigidos = edital.documentos_exigidos
+
+class Login(MethodView):
+    def get(self):
+        return render_template("login.html")
+
+    def post(self):
+        email = request.form['email']
+        senha = request.form['senha']
+        
+        usuario = Usuario.buscar_por_email(email)
+        
+        if not usuario or not usuario.verificar_senha(senha):
+            flash("Email ou senha incorretos")
+            return render_template("login.html", erro=True)
+        
+        login_user(usuario)
+        flash("Login realizado com sucesso!")
+        
+        if usuario.is_admin:
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return redirect(url_for('dashboard'))
+
+
+class Logout(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        logout_user()
+        flash("Logout realizado com sucesso")
+        return redirect(url_for("login"))
+
+app.add_url_rule('/login', view_func=Login.as_view('login'))
+app.add_url_rule('/logout', view_func=Logout.as_view('logout'))
+
+
+class Dashboard(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário. Use o painel administrativo.")
+            return redirect(url_for('admin_dashboard'))
+        
+        inscricao = current_user.get_inscricao_mais_recente()
+        
+        progresso = 0
+        tarefas_resumo = []
+        documentos_faltando = 0
+        dias_para_viagem = None
+
+        if inscricao:
+            edital = inscricao.edital
+            documentos_exigidos = edital.documentos_exigidos
+            docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+            
+            tarefas_concluidas = 1
+            total_tarefas = 1 + len(documentos_exigidos)
+            
+            tarefas_resumo.append({"nome": "Inscrição no Edital", "feito": True})
+            
+            for doc in documentos_exigidos:
+                if doc.id in docs_enviados_ids:
+                    tarefas_concluidas += 1
+                    tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": True})
+                else:
+                    documentos_faltando += 1
+                    tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": False})
+            
+            progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+            tarefas_resumo = tarefas_resumo[:3]
+
+            if inscricao.status == 'Aprovado' and edital.data_ini_programa:
+                hoje = date.today()
+                diferenca = edital.data_ini_programa - hoje
+                dias_para_viagem = diferenca.days
+
+        return render_template("dashboard.html", 
+                               inscricao=inscricao, 
+                               progresso=progresso, 
+                               tarefas_resumo=tarefas_resumo, 
+                               documentos_faltando=documentos_faltando,
+                               dias_para_viagem=dias_para_viagem)
+
+app.add_url_rule('/dashboard', view_func=Dashboard.as_view('dashboard'))
+
+
+class Documentos(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        meus_documentos = DocumentoUsuario.query.filter_by(usuario_id=current_user.id).all()
+        return render_template("lista_documentos.html", documentos=meus_documentos)
+
+app.add_url_rule('/documentos', view_func=Documentos.as_view('lista_documentos'))
+
+
+class CadastroDocumento(MethodView):
+    decorators = [login_required]
+
+    def _obter_dados_inscricao(self):
+        inscricao = current_user.get_inscricao_mais_recente()
+        
+        if not inscricao:
+            return None, []
+        
+        documentos_exigidos = inscricao.edital.documentos_exigidos
         docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+        documentos_pendentes = [doc for doc in documentos_exigidos if doc.id not in docs_enviados_ids]
         
-        tarefas_concluidas = 1
-        total_tarefas = 1 + len(documentos_exigidos)
+        return inscricao, documentos_pendentes
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
         
-        tarefas_resumo.append({"nome": "Inscrição no Edital", "feito": True})
+        inscricao, documentos_pendentes = self._obter_dados_inscricao()
         
-        for doc in documentos_exigidos:
-            if doc.id in docs_enviados_ids:
-                tarefas_concluidas += 1
-                tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": True})
-            else:
-                documentos_faltando += 1
-                tarefas_resumo.append({"nome": f"Enviar {doc.nome}", "feito": False})
+        if not inscricao:
+            flash("Você precisa se inscrever em um edital antes de enviar documentos!")
+            return redirect(url_for('editais_abertos'))
+            
+        return render_template("cadastro_documento.html", pendentes=documentos_pendentes)
+
+    def post(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
         
-        progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
-        tarefas_resumo = tarefas_resumo[:3]
+        inscricao, documentos_pendentes = self._obter_dados_inscricao()
+        
+        if not inscricao:
+            flash("Você precisa se inscrever em um edital antes de enviar documentos!")
+            return redirect(url_for('editais_abertos'))
 
-        # --- NOVA LÓGICA DE APOIO: CONTAGEM REGRESSIVA ---
-        if inscricao.status == 'Aprovado' and edital.data_ini_programa:
-            hoje = datetime.utcnow().date()
-            diferenca = edital.data_ini_programa - hoje
-            dias_para_viagem = diferenca.days
-        # ------------------------------------------------
-
-    return render_template("dashboard.html", 
-                           inscricao=inscricao, 
-                           progresso=progresso, 
-                           tarefas_resumo=tarefas_resumo, 
-                           documentos_faltando=documentos_faltando,
-                           dias_para_viagem=dias_para_viagem)
-@app.route("/documentos")
-@login_required
-def lista_documentos():
-    meus_documentos = DocumentoUsuario.query.filter_by(usuario_id=current_user.id).all()
-    return render_template("lista_documentos.html", documentos=meus_documentos)
-
-@app.route("/cadastro-documento", methods=['GET', 'POST'])
-@login_required
-def cadastro_documento():
-    # 1. Verifica se o aluno já se inscreveu em algum edital
-    edital_atual = Edital.query.filter_by(encerrado=False).order_by(Edital.data_ini_edital.desc()).first()
-    if not edital_atual:
-        flash("Não há editais abertos no momento!")
-        return redirect(url_for('editais_abertos'))
-
-    # 2. Pega os documentos que o Edital exige e os que o aluno já enviou
-    documentos_exigidos = edital_atual.documentos_exigidos
-    docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
-    
-    # 3. Filtra apenas os que faltam enviar (Pendentes)
-    documentos_pendentes = [doc for doc in documentos_exigidos if doc.id not in docs_enviados_ids]
-
-    if request.method == 'POST':
-        documento_id = request.form.get('documento_id') # Recebe o ID da caixa de seleção
+        documento_id = request.form.get('documento_id')
         
         if 'arquivo' not in request.files:
             flash('Nenhum arquivo recebido.')
@@ -181,7 +232,6 @@ def cadastro_documento():
             caminho_salvar = os.path.join(app.config['UPLOAD_FOLDER'], nome_unico)
             ficheiro.save(caminho_salvar)
             
-            # Salva o arquivo vinculando diretamente à obrigatoriedade do Admin!
             novo_envio = DocumentoUsuario(
                 usuario_id=current_user.id,
                 documento_id=documento_id, 
@@ -195,93 +245,144 @@ def cadastro_documento():
         else:
             flash('Tipo de arquivo não suportado. Envie apenas PDF ou Imagens.')
             return redirect(request.url)
-            
-    # Envia a lista de pendentes para a tela do aluno
-    return render_template("cadastro_documento.html", pendentes=documentos_pendentes)
 
-@app.route("/excluir-documento/<int:id>", methods=["GET", "POST"]) # Correção do Erro 405 (Aceita GET agora)
-@login_required
-def excluir_documento(id):
-    # Encontra o arquivo enviado pelo aluno
-    doc_para_excluir = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
-    
-    if doc_para_excluir:
-        # Apaga o arquivo físico do computador
-        if doc_para_excluir.caminho_arquivo and os.path.exists(doc_para_excluir.caminho_arquivo):
-            os.remove(doc_para_excluir.caminho_arquivo)
-            
-        # Apaga APENAS a relação do aluno, NUNCA o documento base do Admin
-        db.session.delete(doc_para_excluir)
-        db.session.commit()
-        flash("Documento excluído com sucesso!")
-    else:
-        flash("Erro: Documento não encontrado.")
+app.add_url_rule('/cadastro-documento', view_func=CadastroDocumento.as_view('cadastro_documento'))
+
+
+class ExcluirDocumento(MethodView):
+    decorators = [login_required]
+
+    def _processar_exclusao(self, id):
+        doc_para_excluir = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
         
-    return redirect(url_for('lista_documentos'))
-
-@app.route("/baixar-documento/<int:id>")
-@login_required
-def baixar_documento(id):
-    doc_para_baixar = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
-    if doc_para_baixar and doc_para_baixar.caminho_arquivo and os.path.exists(doc_para_baixar.caminho_arquivo):
-        return send_file(doc_para_baixar.caminho_arquivo, as_attachment=True)
-    else:
-        flash("Erro: O arquivo físico não foi encontrado no servidor.")
+        if doc_para_excluir:
+            if doc_para_excluir.caminho_arquivo and os.path.exists(doc_para_excluir.caminho_arquivo):
+                os.remove(doc_para_excluir.caminho_arquivo)
+                
+            db.session.delete(doc_para_excluir)
+            db.session.commit()
+            flash("Documento excluído com sucesso!")
+        else:
+            flash("Erro: Documento não encontrado.")
+            
         return redirect(url_for('lista_documentos'))
 
-@app.route("/checklist")
-@login_required
-def checklist():
-    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
-    
-    if not inscricao:
-        return render_template("checklist.html", inscricao=None)
+    def get(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        return self._processar_exclusao(id)
 
-    edital = inscricao.edital
-    documentos_exigidos = edital.documentos_exigidos
-    
-    docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
-    
-    tarefas = []
-    tarefas_concluidas = 0
+    def post(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        return self._processar_exclusao(id)
 
-    tarefas.append({"nome": "Inscrição no Edital (CRA e Carta)", "icone": "fa-file-signature", "status": "Concluído", "classe": "concluido"})
-    tarefas_concluidas += 1
 
-    for doc in documentos_exigidos:
-        if doc.id in docs_enviados_ids:
-            tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-check-circle", "status": "Concluído", "classe": "concluido"})
-            tarefas_concluidas += 1
+class BaixarDocumento(MethodView):
+    decorators = [login_required]
+
+    def get(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        doc_para_baixar = DocumentoUsuario.query.filter_by(id=id, usuario_id=current_user.id).first()
+        
+        if doc_para_baixar and doc_para_baixar.caminho_arquivo and os.path.exists(doc_para_baixar.caminho_arquivo):
+            return send_file(doc_para_baixar.caminho_arquivo, as_attachment=True)
         else:
-            tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-upload", "status": "Pendente", "classe": "pendente"})
+            flash("Erro: O arquivo físico não foi encontrado no servidor.")
+            return redirect(url_for('lista_documentos'))
 
-    total_tarefas = len(tarefas)
-    progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+app.add_url_rule('/excluir-documento/<int:id>', view_func=ExcluirDocumento.as_view('excluir_documento'))
+app.add_url_rule('/baixar-documento/<int:id>', view_func=BaixarDocumento.as_view('baixar_documento'))
 
-    return render_template("checklist.html", inscricao=inscricao, tarefas=tarefas, progresso=progresso)
 
-@app.route("/forum")
-@login_required
-def forum():
-    # Busca todos os tópicos no banco, ordenados do mais recente para o mais antigo
-    topicos_db = Topico.query.order_by(Topico.data_criacao.desc()).all()
-    return render_template("forum.html", topicos=topicos_db)
+class Checklist(MethodView):
+    decorators = [login_required]
 
-@app.route("/forum/topico/<int:id>")
-@login_required
-def forum_ler_topico(id):
-    # Busca o tópico específico pelo ID que veio no link
-    topico_db = Topico.query.get_or_404(id)
-    return render_template("forum_ler_topico.html", topico=topico_db)
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        inscricao = current_user.get_inscricao_mais_recente()
+        
+        if not inscricao:
+            return render_template("checklist.html", inscricao=None)
 
-@app.route("/forum/escrever", methods=['GET', 'POST'])
-@login_required
-def forum_escrever():
-    if request.method == 'POST':
+        edital = inscricao.edital
+        documentos_exigidos = edital.documentos_exigidos
+        
+        docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
+        
+        tarefas = []
+        tarefas_concluidas = 0
+
+        tarefas.append({"nome": "Inscrição no Edital (CRA e Carta)", "icone": "fa-file-signature", "status": "Concluído", "classe": "concluido"})
+        tarefas_concluidas += 1
+
+        for doc in documentos_exigidos:
+            if doc.id in docs_enviados_ids:
+                tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-check-circle", "status": "Concluído", "classe": "concluido"})
+                tarefas_concluidas += 1
+            else:
+                tarefas.append({"nome": f"Enviar {doc.nome}", "icone": "fa-upload", "status": "Pendente", "classe": "pendente"})
+
+        total_tarefas = len(tarefas)
+        progresso = int((tarefas_concluidas / total_tarefas) * 100) if total_tarefas > 0 else 0
+
+        return render_template("checklist.html", inscricao=inscricao, tarefas=tarefas, progresso=progresso)
+
+app.add_url_rule('/checklist', view_func=Checklist.as_view('checklist'))
+
+
+class Forum(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        topicos_db = Topico.query.order_by(Topico.data_criacao.desc()).all()
+        return render_template("forum.html", topicos=topicos_db)
+
+app.add_url_rule('/forum', view_func=Forum.as_view('forum'))
+
+
+class ForumTopico(MethodView):
+    decorators = [login_required]
+
+    def get(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        topico_db = Topico.query.get_or_404(id)
+        return render_template("forum_ler_topico.html", topico=topico_db)
+
+
+class ForumEscrever(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        return render_template("forum_escrever.html")
+
+    def post(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
         titulo = request.form.get('titulo')
         conteudo = request.form.get('conteudo')
         
-        # Cria a nova postagem no banco
         novo_topico = Topico(
             titulo=titulo,
             conteudo=conteudo,
@@ -293,101 +394,282 @@ def forum_escrever():
         
         flash("Tópico criado com sucesso!")
         return redirect(url_for('forum'))
+
+app.add_url_rule('/forum/topico/<int:id>', view_func=ForumTopico.as_view('forum_ler_topico'))
+app.add_url_rule('/forum/escrever', view_func=ForumEscrever.as_view('forum_escrever'))
+
+
+class EditaisAbertos(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
         
-    return render_template("forum_escrever.html")
+        editais_disponiveis = Edital.query.filter_by(encerrado=False).all()
+        return render_template("editais_abertos.html", editais=editais_disponiveis)
 
-@app.route('/admin')
-@login_required
-def admin_dashboard():
-    if not current_user.is_admin:
-        flash("Acesso negado. Apenas administradores podem acessar esta área.")
-        return redirect(url_for("dashboard"))
-    return render_template('admin_dashboard.html')
+app.add_url_rule('/editais-abertos', view_func=EditaisAbertos.as_view('editais_abertos'))
 
-@app.route("/cadastro_paises", methods=['GET', 'POST'])
-@login_required
-def cadastro_paises():
-    if not current_user.is_admin:
-        flash("Apenas administradores podem realizar cadastros de países")
-        return redirect(url_for("admin_dashboard"))
-    if request.method == 'GET':
+
+class DetalhesEdital(MethodView):
+    decorators = [login_required]
+
+    def get(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        edital_db = Edital.query.get_or_404(id)
+        return render_template("detalhes_edital.html", edital=edital_db)
+
+app.add_url_rule('/edital/<int:id>/detalhes', view_func=DetalhesEdital.as_view('detalhes_edital'))
+
+
+class VisualizarEdital(MethodView):
+    decorators = [login_required]
+
+    def get(self, edital_id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        edital = Edital.query.get_or_404(edital_id)
+        
+        ja_inscrito = current_user.esta_inscrito_no_edital(edital_id)
+        docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
+        pode_inscrever = edital.esta_no_periodo_inscricao() and not ja_inscrito
+        
+        return render_template('visualizacao_edital.html', 
+                               edital=edital, 
+                               ja_inscrito=ja_inscrito, 
+                               docs_faltantes=docs_faltantes, 
+                               pode_inscrever=pode_inscrever)
+
+app.add_url_rule('/edital/<int:edital_id>/visualizar', view_func=VisualizarEdital.as_view('visualizar_edital'))
+
+
+class InscreverEdital(MethodView):
+    decorators = [login_required]
+
+    def _editais_conflitam(self, edital1, edital2):
+        return (edital1.data_ini_programa <= edital2.data_fim_programa and
+                edital1.data_fim_programa >= edital2.data_ini_programa)
+
+    def get(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        edital = Edital.query.get_or_404(id)
+        return render_template("inscricao_edital.html", edital=edital)
+
+    def post(self, id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        edital = Edital.query.get_or_404(id)
+
+        if edital.inscricoes_encerradas():
+            flash("O período de inscrições para esse edital está encerrado")
+            return redirect(url_for('dashboard'))
+        
+        if edital.inscricoes_nao_iniciadas():
+            flash("O período para inscrição desse edital ainda não começou")
+            return redirect(url_for('dashboard'))
+        
+        if not edital.tem_vagas_disponiveis():
+            flash("Não há mais vagas disponíveis para este edital")
+            return redirect(url_for('dashboard'))
+        
+        if current_user.esta_inscrito_no_edital(edital.id):
+            flash("Você já está inscrito neste edital!")
+            return redirect(url_for('checklist'))
+
+        inscricoes_existentes = Inscricao.query.filter(
+            Inscricao.usuario_id == current_user.id,
+            Inscricao.status.in_(['Em Análise', 'Aprovado', 'Ativa'])
+        ).all()
+        
+        for insc in inscricoes_existentes:
+            if self._editais_conflitam(edital, insc.edital):
+                flash("Você já está inscrito em um edital com período de intercâmbio conflitante!")
+                return redirect(url_for('editais_abertos'))
+
+        cra = request.form.get('cra')
+        carta = request.form.get('carta_motivacao')
+        
+        nova_inscricao = Inscricao(
+            usuario_id=current_user.id,
+            edital_id=edital.id,
+            cra=float(cra),
+            carta_motivacao=carta,
+            status="Em Análise"
+        )
+        
+        db.session.add(nova_inscricao)
+        db.session.commit()
+        
+        flash("Inscrição realizada com sucesso!")
+        return redirect(url_for('checklist'))
+
+app.add_url_rule('/edital/<int:id>/inscrever', view_func=InscreverEdital.as_view('inscrever_edital'))
+
+
+class CancelarInscricao(MethodView):
+    decorators = [login_required]
+
+    def post(self, edital_id):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        inscricao = Inscricao.query.filter_by(
+            usuario_id=current_user.id, 
+            edital_id=edital_id
+        ).first_or_404()
+
+        db.session.delete(inscricao)
+        db.session.commit()
+        
+        flash("Inscrição cancelada com sucesso")
+        return redirect(url_for('dashboard'))
+
+app.add_url_rule('/edital/<int:edital_id>/cancelar_inscricao', view_func=CancelarInscricao.as_view('cancelar_inscricao'))
+
+
+class Admin(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado. Apenas administradores podem acessar esta área.")
+            return redirect(url_for("dashboard"))
+        return render_template('admin_dashboard.html')
+
+app.add_url_rule('/admin', view_func=Admin.as_view('admin_dashboard'))
+
+
+class CadastroPaises(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if not current_user.is_admin:
+            flash("Apenas administradores podem realizar cadastros de países")
+            return redirect(url_for("admin_dashboard"))
         return render_template("admin_cadastro_pais.html")
-    nome = request.form['nome_pais'].strip().title()
-    iso = request.form['sigla_pais'].strip().upper()
-    desc = request.form['descricao'].strip()
-    nome_usado = Pais.buscar_por_nome(nome)
-    if nome_usado:
-        flash("Esse país já está cadastrado")
-        return redirect(url_for("admin_dashboard"))
-    novo_pais = Pais(nome=nome, iso=iso, desc=desc)
-    db.session.add(novo_pais)
-    db.session.commit()
-    flash("País cadastrado com sucesso!")
-    return redirect(url_for("admin_dashboard"))
 
-@app.route("/editar_paises/<int:id>", methods=['GET', 'POST'])
-@login_required
-def editar_paises(id):
-    if not current_user.is_admin:
-        flash("Apenas administradores podem editar nomes de países")
+    def post(self):
+        if not current_user.is_admin:
+            flash("Apenas administradores podem realizar cadastros de países")
+            return redirect(url_for("admin_dashboard"))
+            
+        nome = request.form['nome_pais'].strip().title()
+        iso = request.form['sigla_pais'].strip().upper()
+        desc = request.form['descricao'].strip()
+        
+        if Pais.buscar_por_nome(nome):
+            flash("Esse país já está cadastrado")
+            return redirect(url_for("admin_dashboard"))
+            
+        novo_pais = Pais(nome=nome, iso=iso, desc=desc)
+        db.session.add(novo_pais)
+        db.session.commit()
+        
+        flash("País cadastrado com sucesso!")
         return redirect(url_for("admin_dashboard"))
-    paises = Pais.buscar_por_id(id)
-    if not paises:
-        flash("País não encontrado")
-        return redirect(url_for("admin_dashboard"))
-    if request.method == 'GET':
+
+app.add_url_rule('/cadastro_paises', view_func=CadastroPaises.as_view('cadastro_paises'))
+
+
+class EditarPaises(MethodView):
+    decorators = [login_required]
+
+    def get(self, id):
+        if not current_user.is_admin:
+            flash("Apenas administradores podem editar nomes de países")
+            return redirect(url_for("admin_dashboard"))
+            
+        paises = Pais.buscar_por_id(id)
+        if not paises:
+            flash("País não encontrado")
+            return redirect(url_for("admin_dashboard"))
+            
         return render_template("admin_cadastro_pais.html", paises=paises)
-    novo_nome = request.form["nome"].strip().title()
-    nome_usado = Pais.buscar_por_nome(novo_nome)
-    if nome_usado and nome_usado.id != paises.id:
-        flash("Esse nome já pertence a um país cadastrado")
-        return render_template("admin_cadastro_pais.html", paises=paises)
-    paises.nome = novo_nome
-    db.session.commit()
-    flash("Alteração bem sucedida!")
-    return redirect(url_for("admin_dashboard"))
 
-@app.route("/excluir_paises/<int:id>", methods=['POST'])
-@login_required
-def excluir_paises(id):
-    if not current_user.is_admin:
-        flash("Apenas administradores podem excluir países")
+    def post(self, id):
+        if not current_user.is_admin:
+            flash("Apenas administradores podem editar nomes de países")
+            return redirect(url_for("admin_dashboard"))
+            
+        paises = Pais.buscar_por_id(id)
+        if not paises:
+            flash("País não encontrado")
+            return redirect(url_for("admin_dashboard"))
+            
+        novo_nome = request.form["nome"].strip().title()
+        nome_usado = Pais.buscar_por_nome(novo_nome)
+        
+        if nome_usado and nome_usado.id != paises.id:
+            flash("Esse nome já pertence a um país cadastrado")
+            return render_template("admin_cadastro_pais.html", paises=paises)
+            
+        paises.nome = novo_nome
+        db.session.commit()
+        
+        flash("Alteração bem sucedida!")
         return redirect(url_for("admin_dashboard"))
-    paises = Pais.buscar_por_id(id)
-    if not paises:
-        flash("País não encontrado")
+
+app.add_url_rule('/editar_paises/<int:id>', view_func=EditarPaises.as_view('editar_paises'))
+
+
+class ExcluirPaises(MethodView):
+    decorators = [login_required]
+
+    def post(self, id):
+        if not current_user.is_admin:
+            flash("Apenas administradores podem excluir países")
+            return redirect(url_for("admin_dashboard"))
+            
+        paises = Pais.buscar_por_id(id)
+        if not paises:
+            flash("País não encontrado")
+            return redirect(url_for("admin_dashboard"))
+            
+        db.session.delete(paises)
+        db.session.commit()
+        flash("País removido com sucesso!")
         return redirect(url_for("admin_dashboard"))
-    db.session.delete(paises)
-    db.session.commit()
-    flash("País removido com sucesso!")
-    return redirect(url_for("admin_dashboard"))
 
-@app.route('/admin/pais/novo', methods=['GET', 'POST'])
-@login_required
-def admin_cadastro_pais():
-    if not current_user.is_admin:
-        flash("Acesso negado. Apenas administradores podem acessar esta área.")
-        return redirect(url_for("dashboard"))
-    return redirect(url_for('cadastro_paises'))
+app.add_url_rule('/excluir_paises/<int:id>', view_func=ExcluirPaises.as_view('excluir_paises'))
 
-@app.route('/admin/universidade/novo', methods=['GET', 'POST'])
-@login_required
-def admin_cadastro_universidade():
-    if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for("dashboard"))
 
-    if request.method == 'POST':
+class AdminCadastroUniversidade(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+            
+        paises = Pais.query.all()
+        return render_template('admin_cadastro_universidade.html', paises=paises)
+
+    def post(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+
         nome = request.form['nome'].strip().title()
         endereco = request.form['endereco'].strip()
         pais_id = request.form['pais_id']
 
-  
         uni_existente = Universidade.query.filter_by(nome=nome).first()
         if uni_existente:
             flash("Erro: Esta universidade já está cadastrada no sistema.")
             return redirect(url_for('admin_cadastro_universidade'))
-
 
         nova_universidade = Universidade(
             nome=nome,
@@ -401,53 +683,80 @@ def admin_cadastro_universidade():
         flash('Universidade cadastrada com sucesso!')
         return redirect(url_for('admin_dashboard'))
 
-    paises = Pais.query.all()
-    return render_template('admin_cadastro_universidade.html', paises=paises)
+app.add_url_rule('/admin/universidade/novo', view_func=AdminCadastroUniversidade.as_view('admin_cadastro_universidade'))
 
-@app.route('/admin/documento/novo', methods=['GET', 'POST'])
-@login_required
-def admin_cadastro_documento():
-    if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for("dashboard"))
-    if request.method == 'POST':
+
+class AdminCadastroDocumento(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+        return render_template("admin_cadastro_documento.html")
+
+    def post(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+            
         nome = request.form.get('nome_doc', '').strip().title()
         categoria = request.form.get('categoria', '').strip()
+        
         if not nome or not categoria:
             flash("Preencha todos os campos.")
             return redirect(url_for('admin_cadastro_documento'))
+            
         doc_existente = Documento.query.filter_by(nome=nome).first()
         if doc_existente:
             flash("Esse documento já está cadastrado.")
             return redirect(url_for('admin_cadastro_documento'))
+            
         novo_doc = Documento(nome=nome, descricao=categoria)
         db.session.add(novo_doc)
         db.session.commit()
+        
         flash("Documento cadastrado com sucesso!")
         return redirect(url_for('admin_dashboard'))
-    return render_template("admin_cadastro_documento.html")
 
-# --- ROTAS DE EDITAIS ---
-@app.route('/admin/editais')
-@login_required
-def admin_listar_editais():
-    if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for("dashboard"))
-    editais_db = Edital.query.all()
-    return render_template('admin_edital.html', editais=editais_db)
+app.add_url_rule('/admin/documento/novo', view_func=AdminCadastroDocumento.as_view('admin_cadastro_documento'))
 
-@app.route('/admin/cadastro/edital', methods=['GET', 'POST'])
-@login_required
-def admin_cadastro_edital():
-    if not current_user.is_admin:
-        flash("Acesso negado!")
-        return redirect(url_for('index'))
 
-    universidades = Universidade.query.all()
-    documentos = Documento.query.all()
+class AdminListarEditais(MethodView):
+    decorators = [login_required]
 
-    if request.method == 'POST':
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+        editais_db = Edital.query.all()
+        return render_template('admin_edital.html', editais=editais_db)
+
+app.add_url_rule('/admin/editais', view_func=AdminListarEditais.as_view('admin_listar_editais'))
+
+
+class AdminCadastroEdital(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado!")
+            return redirect(url_for('index'))
+
+        universidades = Universidade.query.all()
+        documentos = Documento.query.all()
+
+        return render_template(
+            'admin_cadastro_edital.html',
+            universidades=universidades,
+            documentos=documentos
+        )
+
+    def post(self):
+        if not current_user.is_admin:
+            flash("Acesso negado!")
+            return redirect(url_for('index'))
+
         titulo = request.form.get('titulo')
         universidade_id = request.form.get('universidade_id')
         vagas = int(request.form.get('vagas'))
@@ -461,14 +770,41 @@ def admin_cadastro_edital():
             flash("Erro: É obrigatório selecionar pelo menos um documento exigido para publicar o edital.")
             return redirect(url_for('admin_cadastro_edital'))
 
+        data_ini_edital = datetime.strptime(data_inicial, '%Y-%m-%d').date()
+        data_fim_edital = datetime.strptime(data_limite, '%Y-%m-%d').date()
+        data_ini_programa = datetime.strptime(data_inicial_intercambio, '%Y-%m-%d').date()
+        data_fim_programa = datetime.strptime(data_limite_intercambio, '%Y-%m-%d').date()
+        
+        hoje = date.today()
+        
+        if data_ini_edital < hoje:
+            flash("Erro: A data de início das inscrições não pode estar no passado!")
+            return redirect(url_for('admin_cadastro_edital'))
+        
+        if data_fim_edital < data_ini_edital:
+            flash("Erro: A data de término das inscrições não pode ser anterior ao início!")
+            return redirect(url_for('admin_cadastro_edital'))
+        
+        if data_ini_programa < hoje:
+            flash("Erro: A data de início do intercâmbio não pode estar no passado!")
+            return redirect(url_for('admin_cadastro_edital'))
+        
+        if data_fim_programa < data_ini_programa:
+            flash("Erro: A data de término do intercâmbio não pode ser anterior ao início!")
+            return redirect(url_for('admin_cadastro_edital'))
+        
+        if data_ini_programa < data_fim_edital:
+            flash("Erro: O intercâmbio não pode começar antes do fim das inscrições!")
+            return redirect(url_for('admin_cadastro_edital'))
+
         novo_edital = Edital(
             titulo=titulo,
             universidade_id=universidade_id,  
             vagas=vagas,
-            data_ini_edital=datetime.strptime(data_inicial, '%Y-%m-%d').date(),
-            data_fim_edital=datetime.strptime(data_limite, '%Y-%m-%d').date(),
-            data_ini_programa=datetime.strptime(data_inicial_intercambio, '%Y-%m-%d').date(),
-            data_fim_programa=datetime.strptime(data_limite_intercambio, '%Y-%m-%d').date()
+            data_ini_edital=data_ini_edital,
+            data_fim_edital=data_fim_edital,
+            data_ini_programa=data_ini_programa,
+            data_fim_programa=data_fim_programa
         )
 
         for doc_id in documentos_id:
@@ -481,24 +817,41 @@ def admin_cadastro_edital():
         flash("Edital cadastrado com sucesso!")
         return redirect(url_for('admin_listar_editais'))
 
-    return render_template(
-        'admin_cadastro_edital.html',
-        universidades=universidades,
-        documentos=documentos
-    )
+app.add_url_rule('/admin/cadastro/edital', view_func=AdminCadastroEdital.as_view('admin_cadastro_edital'))
 
-@app.route('/admin/edital/editar/<int:id>', methods=['GET', 'POST'])
-@login_required
-def editar_edital(id):
-    if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for("dashboard"))
 
-    edital = Edital.query.get_or_404(id)
+class EditarEdital(MethodView):
+    decorators = [login_required]
 
-    if request.method == 'POST':
+    def get(self, id):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+
+        edital = Edital.query.get_or_404(id)
+        universidades_db = Universidade.query.all()
+        documentos_db = Documento.query.all()
+
+        return render_template(
+            'admin_editar_edital.html',
+            edital=edital,
+            universidades=universidades_db,
+            documentos=documentos_db
+        )
+
+    def post(self, id):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for("dashboard"))
+
+        edital = Edital.query.get_or_404(id)
+
+        if edital.tem_candidatos_aprovados():
+            flash("Erro: Não é possível editar um edital que já tem candidatos aprovados!")
+            return redirect(url_for('admin_listar_editais'))
+
         edital.titulo = request.form.get('titulo', '').strip()
-        edital.universidade_id = request.form.get('universidade_id')  # <-- ADD
+        edital.universidade_id = request.form.get('universidade_id')
         edital.vagas = int(request.form.get('vagas', 0))
 
         data_inicial_str = request.form.get('data_inicial')
@@ -511,7 +864,6 @@ def editar_edital(id):
         edital.data_ini_programa = datetime.strptime(data_ini_inter_str, '%Y-%m-%d').date() if data_ini_inter_str else None
         edital.data_fim_programa = datetime.strptime(data_lim_inter_str, '%Y-%m-%d').date() if data_lim_inter_str else None
 
-        # DOCUMENTOS (limpa e adiciona novamente)
         edital.documentos_exigidos.clear()
         documentos_ids = request.form.getlist('documentos_id')
 
@@ -523,158 +875,56 @@ def editar_edital(id):
         flash("Edital atualizado com sucesso!")
         return redirect(url_for('admin_listar_editais'))
 
-    # GET
-    universidades_db = Universidade.query.all()
-    documentos_db = Documento.query.all()
+app.add_url_rule('/admin/edital/editar/<int:id>', view_func=EditarEdital.as_view('editar_edital'))
 
-    return render_template(
-        'admin_editar_edital.html',
-        edital=edital,
-        universidades=universidades_db,
-        documentos=documentos_db
-    )
 
-@app.route('/admin/edital/excluir/<int:id>', methods=['POST'])
-@login_required
-def excluir_edital(id):
-    if not current_user.is_admin:
-        return redirect(url_for("dashboard"))
-    edital = Edital.query.get(id)
-    if edital:
-        db.session.delete(edital)
-        db.session.commit()
-        flash("Edital removido permanentemente!")
-    return redirect(url_for('admin_listar_editais'))
+class ExcluirEdital(MethodView):
+    decorators = [login_required]
 
-@app.route("/editais-abertos")
-@login_required
-def editais_abertos():
-    editais_disponiveis = Edital.query.filter_by(encerrado=False).all()
-    return render_template("editais_abertos.html", editais=editais_disponiveis)
+    def post(self, id):
+        if not current_user.is_admin:
+            return redirect(url_for("dashboard"))
+            
+        edital = Edital.query.get(id)
+        if edital:
+            db.session.delete(edital)
+            db.session.commit()
+            flash("Edital removido permanentemente!")
+            
+        return redirect(url_for('admin_listar_editais'))
 
-@app.route("/edital/<int:id>")
-@login_required
-def detalhes_edital(id):
-    
-    edital_db = Edital.query.get_or_404(id)
-    
-    return render_template("detalhes_edital.html", edital=edital_db)
+app.add_url_rule('/admin/edital/excluir/<int:id>', view_func=ExcluirEdital.as_view('excluir_edital'))
 
-@app.route('/edital/<int:edital_id>/visualizar')
-@login_required
-def visualizar_edital(edital_id):
-    """Rota para visualizar detalhes do edital antes de se inscrever"""
-    edital = Edital.query.get_or_404(edital_id)
-    
-    # verifica se já tá inscrito
-    ja_inscrito = current_user.esta_inscrito_no_edital(edital_id)
-    
-    # verifica documentos faltantes
-    docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
-    
-    # verifica status do período de inscrição
-    pode_inscrever = edital.esta_no_periodo_inscricao() and not ja_inscrito
-    
-    return render_template(
-        'visualizacao_edital.html', 
-        edital=edital,
-        ja_inscrito=ja_inscrito,
-        docs_faltantes=docs_faltantes,
-        pode_inscrever=pode_inscrever
-    )
 
-@app.route("/edital/<int:id>/inscrever", methods=['GET', 'POST'])
-@login_required
-def inscrever_edital(id):
-    edital = Edital.query.get_or_404(id)
-    
-    
-    if edital.inscricoes_encerradas():
-        flash("O período de inscrições para esse edital está encerrado")
-        return redirect(url_for('dashboard'))
-    
-    if edital.inscricoes_nao_iniciadas():
-        flash("O período para inscrição desse edital ainda não começou")
-        return redirect(url_for('dashboard'))
-    
-    inscricao_existente = Inscricao.query.filter_by(usuario_id=current_user.id, edital_id=edital.id).first()
-    if inscricao_existente:
-        flash("Você já está inscrito neste edital! Acompanhe o status no seu Checklist.")
-        return redirect(url_for('dashboard'))
-    
- 
-    if not edital.tem_vagas_disponiveis():
-        flash("Não há mais vagas disponíveis para este edital")
-        return redirect(url_for('dashboard'))
-    
-    
-    docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
-    if docs_faltantes:
-        faltantes = ", ".join(docs_faltantes)
-        flash(f"Não foi possível realizar a inscrição, faltam os seguintes documentos: {faltantes}")
-        return redirect(url_for('lista_documentos'))
+class AdminAvaliarInscricao(MethodView):
+    decorators = [login_required]
 
-    if request.method == 'POST':
-        cra = request.form.get('cra')
-        carta = request.form.get('carta_motivacao')
+    def get(self, id):
+        if not current_user.is_admin:
+            return redirect(url_for('dashboard'))
+
+        inscricao = Inscricao.query.get_or_404(id)
         
-        
-        nova_inscricao = Inscricao(
-            usuario_id=current_user.id,
-            edital_id=edital.id,
-            cra=float(cra),
-            carta_motivacao=carta,
-            status="Ativa" 
-        )
-        
-        db.session.add(nova_inscricao)
-        db.session.commit()
-        
-        flash("Inscrição realizada com sucesso! Agora acompanhe pelo seu Checklist.")
-        return redirect(url_for('checklist'))
-    
-    # --- EXIBIÇÃO DO FORMULÁRIO (GET) ---
-    return render_template("inscricao_edital.html", edital=edital)
+        docs_exigidos_ids = [doc.id for doc in inscricao.edital.documentos_exigidos]
+        documentos_aluno = DocumentoUsuario.query.filter(
+            DocumentoUsuario.usuario_id == inscricao.usuario_id,
+            DocumentoUsuario.documento_id.in_(docs_exigidos_ids)
+        ).all()
 
+        return render_template('admin_avaliar_inscricao.html', inscricao=inscricao, documentos=documentos_aluno)
 
-@app.route('/edital/<int:edital_id>/cancelar_inscricao', methods=['POST'])
-@login_required
-def cancelar_inscricao(edital_id):
-    """Rota pra cancelar inscrição em um edital"""
-    inscricao = Inscricao.query.filter_by(
-        usuario_id=current_user.id, 
-        edital_id=edital_id
-    ).first_or_404()
+    def post(self, id):
+        if not current_user.is_admin:
+            return redirect(url_for('dashboard'))
 
-    # método para cancelar
-    inscricao.cancelar()
-    
-    flash("Inscrição cancelada com sucesso")
-    return redirect(url_for('dashboard'))
-
-@app.route('/admin/inscricoes')
-@login_required
-def admin_listar_inscricoes():
-    if not current_user.is_admin:
-        flash("Acesso negado.")
-        return redirect(url_for('dashboard'))
-    
-    # Busca todas as inscrições, da mais recente para a mais antiga
-    inscricoes = Inscricao.query.order_by(Inscricao.data_inscricao.desc()).all()
-    return render_template('admin_listar_inscricoes.html', inscricoes=inscricoes)
-
-@app.route('/admin/inscricao/<int:id>', methods=['GET', 'POST'])
-@login_required
-def admin_avaliar_inscricao(id):
-    if not current_user.is_admin:
-        return redirect(url_for('dashboard'))
-
-    inscricao = Inscricao.query.get_or_404(id)
-
-    if request.method == 'POST':
-        acao = request.form.get('acao') # Pega se o admin clicou em aprovar ou reprovar
+        inscricao = Inscricao.query.get_or_404(id)
+        acao = request.form.get('acao')
         
         if acao == 'aprovar':
+            if not inscricao.edital.tem_vagas_disponiveis():
+                flash(f"Não é possível aprovar. O edital já atingiu o limite de {inscricao.edital.vagas} vagas!")
+                return redirect(request.referrer)
+            
             inscricao.status = 'Aprovado'
             flash(f"Candidatura de {inscricao.usuario.nome} APROVADA com sucesso!")
         elif acao == 'reprovar':
@@ -682,58 +932,82 @@ def admin_avaliar_inscricao(id):
             flash(f"Candidatura de {inscricao.usuario.nome} REPROVADA.")
             
         db.session.commit()
-        return redirect(url_for('admin_listar_inscricoes'))
+        return redirect(url_for('admin_listar_editais'))
 
-    # Pega apenas os documentos que este aluno enviou para os requisitos deste edital
-    docs_exigidos_ids = [doc.id for doc in inscricao.edital.documentos_exigidos]
-    documentos_aluno = DocumentoUsuario.query.filter(
-        DocumentoUsuario.usuario_id == inscricao.usuario_id,
-        DocumentoUsuario.documento_id.in_(docs_exigidos_ids)
-    ).all()
+app.add_url_rule('/admin/inscricao/<int:id>', view_func=AdminAvaliarInscricao.as_view('admin_avaliar_inscricao'))
 
-    return render_template('admin_avaliar_inscricao.html', inscricao=inscricao, documentos=documentos_aluno)
 
-@app.route('/admin/baixar-documento/<int:id>')
-@login_required
-def admin_baixar_documento(id):
-    if not current_user.is_admin:
-        return redirect(url_for('dashboard'))
+class AdminAvaliarDocumento(MethodView):
+    decorators = [login_required]
+    
+    def post(self, id):
+        if not current_user.is_admin:
+            return redirect(url_for('dashboard'))
         
-    doc = DocumentoUsuario.query.get_or_404(id)
-    
-    # Verifica se o caminho existe e previne erros de barras no Windows
-    if doc.caminho_arquivo and os.path.exists(doc.caminho_arquivo):
-        caminho_absoluto = os.path.abspath(doc.caminho_arquivo)
-        return send_file(caminho_absoluto, as_attachment=True)
-    else:
-        flash("Erro: O arquivo físico não foi encontrado na pasta do sistema! O aluno precisa reenviar o documento.")
-        return redirect(request.referrer or url_for('admin_listar_inscricoes'))
+        doc = DocumentoUsuario.query.get_or_404(id)
+        acao = request.form.get('acao')
+        
+        if acao == 'aprovar':
+            doc.status = 'Aprovado'
+        elif acao == 'reprovar':
+            doc.status = 'Reprovado'
+        
+        db.session.commit()
+        flash("Documento avaliado!")
+        return redirect(request.referrer)
 
-# --- ROTA DE MATCH DE DESTINO (REDE DE CONTATOS) ---
-@app.route("/colegas")
-@login_required
-def colegas_viagem():
-    # 1. Procura se o aluno atual tem uma inscrição aprovada
-    minha_inscricao = Inscricao.query.filter_by(usuario_id=current_user.id, status='Aprovado').first()
+app.add_url_rule('/admin/documento/<int:id>/avaliar', view_func=AdminAvaliarDocumento.as_view('admin_avaliar_documento'))
 
-    if not minha_inscricao:
-        flash("Você precisa ter uma candidatura aprovada para acessar a Rede de Contatos!")
-        return redirect(url_for('dashboard'))
+class AdminBaixarDocumento(MethodView):
+    decorators = [login_required]
 
-    # 2. Descobre qual é o país de destino dele
-    meu_pais_id = minha_inscricao.edital.universidade.pais_id
-    nome_do_pais = minha_inscricao.edital.universidade.pais_origem.nome
+    def get(self, id):
+        if not current_user.is_admin:
+            return redirect(url_for('dashboard'))
+            
+        doc = DocumentoUsuario.query.get_or_404(id)
+        
+        if doc.caminho_arquivo and os.path.exists(doc.caminho_arquivo):
+            caminho_absoluto = os.path.abspath(doc.caminho_arquivo)
+            return send_file(caminho_absoluto, as_attachment=True)
+        else:
+            flash("Erro: O arquivo físico não foi encontrado na pasta do sistema! O aluno precisa reenviar o documento.")
+            return redirect(request.referrer or url_for('admin_listar_editais'))
 
-    # 3. Busca todos os outros alunos aprovados
-    todas_aprovadas = Inscricao.query.filter(Inscricao.status == 'Aprovado', Inscricao.usuario_id != current_user.id).all()
-    
-    colegas = []
-    for inscricao in todas_aprovadas:
-        # Se o país do colega for igual ao meu, dá match!
-        if inscricao.edital.universidade.pais_id == meu_pais_id:
-            colegas.append(inscricao)
+app.add_url_rule('/admin/baixar-documento/<int:id>', view_func=AdminBaixarDocumento.as_view('admin_baixar_documento'))
 
-    return render_template("colegas_viagem.html", colegas=colegas, pais=nome_do_pais)
+class ColegasViagem(MethodView):
+    decorators = [login_required]
+
+    def get(self):
+        if current_user.is_admin:
+            flash("Admins não podem acessar áreas de usuário.")
+            return redirect(url_for('admin_dashboard'))
+        
+        minha_inscricao = Inscricao.query.filter_by(usuario_id=current_user.id, status='Aprovado').first()
+
+        if not minha_inscricao:
+            flash("Você precisa ter uma candidatura aprovada para acessar a Rede de Contatos!")
+            return redirect(url_for('dashboard'))
+
+        meu_pais_id = minha_inscricao.edital.universidade.pais_id
+        nome_do_pais = minha_inscricao.edital.universidade.pais_origem.nome
+
+        todas_aprovadas = Inscricao.query.filter(Inscricao.status == 'Aprovado', Inscricao.usuario_id != current_user.id).all()
+        
+        colegas = []
+        for inscricao in todas_aprovadas:
+            if inscricao.edital.universidade.pais_id == meu_pais_id:
+                colegas.append(inscricao)
+
+        return render_template("colegas_viagem.html", colegas=colegas, pais=nome_do_pais)
+
+app.add_url_rule('/colegas', view_func=ColegasViagem.as_view('colegas_viagem'))
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        seed_database()
+        print("Banco de dados inicializado com sucesso!")
+
     app.run(debug=True)
