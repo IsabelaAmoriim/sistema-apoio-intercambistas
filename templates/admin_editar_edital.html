@@ -58,7 +58,9 @@
                     <select name="universidade_id" required>
                         <option value="">Selecione a universidade...</option>
                         {% for uni in universidades %}
-                            <option value="{{ uni.id }}">{{ uni.nome }}</option>
+                            <option value="{{ uni.id }}" {% if uni.id == edital.universidade_id %}selected{% endif %}>
+                                {{ uni.nome }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>

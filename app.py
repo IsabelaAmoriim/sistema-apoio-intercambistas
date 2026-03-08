@@ -426,30 +426,6 @@ class DetalhesEdital(MethodView):
 
 app.add_url_rule('/edital/<int:id>/detalhes', view_func=DetalhesEdital.as_view('detalhes_edital'))
 
-
-class VisualizarEdital(MethodView):
-    decorators = [login_required]
-
-    def get(self, edital_id):
-        if current_user.is_admin:
-            flash("Admins não podem acessar áreas de usuário.")
-            return redirect(url_for('admin_dashboard'))
-        
-        edital = Edital.query.get_or_404(edital_id)
-        
-        ja_inscrito = current_user.esta_inscrito_no_edital(edital_id)
-        docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
-        pode_inscrever = edital.esta_no_periodo_inscricao() and not ja_inscrito
-        
-        return render_template('visualizacao_edital.html', 
-                               edital=edital, 
-                               ja_inscrito=ja_inscrito, 
-                               docs_faltantes=docs_faltantes, 
-                               pode_inscrever=pode_inscrever)
-
-app.add_url_rule('/edital/<int:edital_id>/visualizar', view_func=VisualizarEdital.as_view('visualizar_edital'))
-
-
 class InscreverEdital(MethodView):
     decorators = [login_required]
 
@@ -581,7 +557,7 @@ class CadastroPaises(MethodView):
         flash("País cadastrado com sucesso!")
         return redirect(url_for("admin_dashboard"))
 
-app.add_url_rule('/cadastro_paises', view_func=CadastroPaises.as_view('cadastro_paises'))
+app.add_url_rule('/cadastro_paises', view_func=CadastroPaises.as_view('admin_cadastro_pais'))
 
 
 class EditarPaises(MethodView):
@@ -895,7 +871,19 @@ class ExcluirEdital(MethodView):
 
 app.add_url_rule('/admin/edital/excluir/<int:id>', view_func=ExcluirEdital.as_view('excluir_edital'))
 
+class AdminListarInscricoes(MethodView):
+    decorators = [login_required]
 
+    def get(self):
+        if not current_user.is_admin:
+            flash("Acesso negado.")
+            return redirect(url_for('dashboard'))
+        
+        # Busca todas as inscrições, da mais recente para a mais antiga
+        inscricoes = Inscricao.query.order_by(Inscricao.data_inscricao.desc()).all()
+        return render_template('admin_listar_inscricoes.html', inscricoes=inscricoes)
+
+app.add_url_rule('/admin/inscricoes', view_func=AdminListarInscricoes.as_view('admin_listar_inscricoes'))
 class AdminAvaliarInscricao(MethodView):
     decorators = [login_required]
 
@@ -932,7 +920,7 @@ class AdminAvaliarInscricao(MethodView):
             flash(f"Candidatura de {inscricao.usuario.nome} REPROVADA.")
             
         db.session.commit()
-        return redirect(request.referrer or url_for('admin_listar_editais'))
+        return redirect(url_for('admin_listar_editais'))
 
 app.add_url_rule('/admin/inscricao/<int:id>', view_func=AdminAvaliarInscricao.as_view('admin_avaliar_inscricao'))
 
@@ -958,7 +946,6 @@ class AdminAvaliarDocumento(MethodView):
 
 app.add_url_rule('/admin/documento/<int:id>/avaliar', view_func=AdminAvaliarDocumento.as_view('admin_avaliar_documento'))
 
-
 class AdminBaixarDocumento(MethodView):
     decorators = [login_required]
 
@@ -976,7 +963,6 @@ class AdminBaixarDocumento(MethodView):
             return redirect(request.referrer or url_for('admin_listar_editais'))
 
 app.add_url_rule('/admin/baixar-documento/<int:id>', view_func=AdminBaixarDocumento.as_view('admin_baixar_documento'))
-
 
 class ColegasViagem(MethodView):
     decorators = [login_required]
@@ -1005,7 +991,6 @@ class ColegasViagem(MethodView):
         return render_template("colegas_viagem.html", colegas=colegas, pais=nome_do_pais)
 
 app.add_url_rule('/colegas', view_func=ColegasViagem.as_view('colegas_viagem'))
-
 
 if __name__ == "__main__":
     with app.app_context():

@@ -910,3 +910,73 @@ form {
     transform: translateY(-2px); 
     color: white; 
 }
+
+/* Previne que palavras gigantes quebrem o layout (ex: no fórum) */
+p, div, span, li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* =======================================================
+   RESPONSIVIDADE (CELULARES E TABLETS)
+   Ativa-se automaticamente em telas menores que 768px
+======================================================== */
+@media (max-width: 768px) {
+    
+    
+    header {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    
+    nav {
+        position: relative;
+        left: auto;
+        transform: none;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+
+    .auth-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cards-grid, 
+    .grid-info-edital {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .banner-overlay h1 {
+        font-size: 1.8rem;
+    }
+    
+    .titulo-secao, .titulo-form {
+        font-size: 22px;
+    }
+
+    .card-formulario, 
+    .card-form, 
+    .card-detalhes, 
+    .card-checklist {
+        padding: 20px;
+        width: 90%;
+    }
+
+    .card-tabela {
+        overflow-x: auto;
+        padding: 15px;
+    }
+    
+    .btn-inscrever {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

@@ -31,6 +31,16 @@
             <i class="fas fa-arrow-left"></i> Voltar para Editais
         </a>
 
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="alertas-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <li class="alerta-item">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
         <div class="card-detalhes">
             <div class="cabecalho-edital">
                 <h2>{{ edital.titulo }}</h2>

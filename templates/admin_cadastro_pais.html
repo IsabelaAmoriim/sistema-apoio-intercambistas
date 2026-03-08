@@ -45,7 +45,7 @@
             {% endwith %}
 
             <form method="POST"
-                      action="{% if paises %}{{ url_for('editar_paises', id=paises.id) }}{% else %}{{ url_for('cadastro_paises') }}{% endif %}">
+                      action="{% if paises %}{{ url_for('editar_paises', id=paises.id) }}{% else %}{{ url_for('admin_cadastro_pais') }}{% endif %}">
                 
                     <div class="form-group">
                         <label>Nome do País</label>
@@ -60,6 +60,8 @@
                         <input type="text" name="sigla_pais"
                                placeholder="Ex: PT, US, CA"
                                maxlength="3"
+                               pattern="[A-Za-z]{2,3}" 
+                               title="Apenas letras são permitidas"
                                value="{% if paises %}{{ paises.iso }}{% endif %}"
                                required>
                     </div>
