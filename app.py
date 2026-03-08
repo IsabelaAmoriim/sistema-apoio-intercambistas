@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from datetime import datetime, date
 
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -150,13 +151,13 @@ def lista_documentos():
 @login_required
 def cadastro_documento():
     # 1. Verifica se o aluno já se inscreveu em algum edital
-    inscricao = Inscricao.query.filter_by(usuario_id=current_user.id).order_by(Inscricao.data_inscricao.desc()).first()
-    if not inscricao:
-        flash("Você precisa se inscrever em um edital antes de enviar documentos!")
+    edital_atual = Edital.query.filter_by(encerrado=False).order_by(Edital.data_ini_edital.desc()).first()
+    if not edital_atual:
+        flash("Não há editais abertos no momento!")
         return redirect(url_for('editais_abertos'))
 
     # 2. Pega os documentos que o Edital exige e os que o aluno já enviou
-    documentos_exigidos = inscricao.edital.documentos_exigidos
+    documentos_exigidos = edital_atual.documentos_exigidos
     docs_enviados_ids = [doc.documento_id for doc in current_user.documentos_enviados]
     
     # 3. Filtra apenas os que faltam enviar (Pendentes)
@@ -559,39 +560,97 @@ def detalhes_edital(id):
     
     return render_template("detalhes_edital.html", edital=edital_db)
 
+@app.route('/edital/<int:edital_id>/visualizar')
+@login_required
+def visualizar_edital(edital_id):
+    """Rota para visualizar detalhes do edital antes de se inscrever"""
+    edital = Edital.query.get_or_404(edital_id)
+    
+    # verifica se já tá inscrito
+    ja_inscrito = current_user.esta_inscrito_no_edital(edital_id)
+    
+    # verifica documentos faltantes
+    docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
+    
+    # verifica status do período de inscrição
+    pode_inscrever = edital.esta_no_periodo_inscricao() and not ja_inscrito
+    
+    return render_template(
+        'visualizacao_edital.html', 
+        edital=edital,
+        ja_inscrito=ja_inscrito,
+        docs_faltantes=docs_faltantes,
+        pode_inscrever=pode_inscrever
+    )
+
 @app.route("/edital/<int:id>/inscrever", methods=['GET', 'POST'])
 @login_required
 def inscrever_edital(id):
     edital = Edital.query.get_or_404(id)
     
-    # Verifica se o aluno já se inscreveu neste edital antes
-    inscricao_existente = Inscricao.query.filter_by(usuario_id=current_user.id, edital_id=edital.id).first()
     
+    if edital.inscricoes_encerradas():
+        flash("O período de inscrições para esse edital está encerrado")
+        return redirect(url_for('dashboard'))
+    
+    if edital.inscricoes_nao_iniciadas():
+        flash("O período para inscrição desse edital ainda não começou")
+        return redirect(url_for('dashboard'))
+    
+    inscricao_existente = Inscricao.query.filter_by(usuario_id=current_user.id, edital_id=edital.id).first()
     if inscricao_existente:
         flash("Você já está inscrito neste edital! Acompanhe o status no seu Checklist.")
-        return redirect(url_for('detalhes_edital', id=edital.id))
+        return redirect(url_for('dashboard'))
+    
+ 
+    if not edital.tem_vagas_disponiveis():
+        flash("Não há mais vagas disponíveis para este edital")
+        return redirect(url_for('dashboard'))
+    
+    
+    docs_faltantes = current_user.documentos_faltantes_para_edital(edital)
+    if docs_faltantes:
+        faltantes = ", ".join(docs_faltantes)
+        flash(f"Não foi possível realizar a inscrição, faltam os seguintes documentos: {faltantes}")
+        return redirect(url_for('lista_documentos'))
 
     if request.method == 'POST':
         cra = request.form.get('cra')
         carta = request.form.get('carta_motivacao')
         
-        # Cria a nova inscrição
+        
         nova_inscricao = Inscricao(
             usuario_id=current_user.id,
             edital_id=edital.id,
             cra=float(cra),
-            carta_motivacao=carta
+            carta_motivacao=carta,
+            status="Ativa" 
         )
         
         db.session.add(nova_inscricao)
         db.session.commit()
         
-        flash("Inscrição realizada com sucesso! Agora complete o envio dos seus documentos.")
+        flash("Inscrição realizada com sucesso! Agora acompanhe pelo seu Checklist.")
         return redirect(url_for('checklist'))
-        
+    
+    # --- EXIBIÇÃO DO FORMULÁRIO (GET) ---
     return render_template("inscricao_edital.html", edital=edital)
 
-# --- ROTAS DE AVALIAÇÃO DE INSCRIÇÕES (ADMIN) ---
+
+@app.route('/edital/<int:edital_id>/cancelar_inscricao', methods=['POST'])
+@login_required
+def cancelar_inscricao(edital_id):
+    """Rota pra cancelar inscrição em um edital"""
+    inscricao = Inscricao.query.filter_by(
+        usuario_id=current_user.id, 
+        edital_id=edital_id
+    ).first_or_404()
+
+    # método para cancelar
+    inscricao.cancelar()
+    
+    flash("Inscrição cancelada com sucesso")
+    return redirect(url_for('dashboard'))
 
 @app.route('/admin/inscricoes')
 @login_required
