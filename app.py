@@ -460,6 +460,12 @@ class InscreverEdital(MethodView):
             flash("Você já está inscrito neste edital!")
             return redirect(url_for('checklist'))
 
+        vagas_ocupadas = Inscricao.query.filter_by(edital_id=edital.id, status='Aprovado').count()
+        
+        if vagas_ocupadas >= edital.vagas:
+            flash("As vagas para este edital já foram totalmente preenchidas e o processo foi encerrado!")
+            return redirect(url_for('dashboard'))
+
         inscricoes_existentes = Inscricao.query.filter(
             Inscricao.usuario_id == current_user.id,
             Inscricao.status.in_(['Em Análise', 'Aprovado', 'Ativa'])
@@ -835,6 +841,12 @@ class EditarEdital(MethodView):
         edital.data_fim_edital = datetime.strptime(data_limite_str, '%Y-%m-%d').date() if data_limite_str else None
         edital.data_ini_programa = datetime.strptime(data_ini_inter_str, '%Y-%m-%d').date() if data_ini_inter_str else None
         edital.data_fim_programa = datetime.strptime(data_lim_inter_str, '%Y-%m-%d').date() if data_lim_inter_str else None
+
+        hoje = date.today()
+
+        if edital.data_fim_edital and edital.data_fim_edital < hoje:
+            flash("Erro: Você não pode alterar um edital para que ele termine no passado!")
+            return redirect(request.referrer)
 
         if edital.data_fim_edital and edital.data_ini_edital and edital.data_fim_edital < edital.data_ini_edital:
             flash("Erro: A data de término das inscrições não pode ser anterior ao início!")

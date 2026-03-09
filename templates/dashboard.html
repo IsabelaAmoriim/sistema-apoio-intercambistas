@@ -51,12 +51,12 @@
                 {% elif inscricao.status == 'Reprovado' %}
                     <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; border-left: 5px solid #dc3545; margin-top: 15px;">
                         <h3 style="margin: 0 0 5px 0;">Candidatura Encerrada</h3>
-                        <p style="margin: 0;">Infelizmente, a sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> não foi aprovada desta vez. Continue a tentar nos próximos editais!</p>
+                        <p style="margin: 0;">Infelizmente, a sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> não foi aprovada desta vez. Continue tentando nos próximos editais!</p>
                     </div>
                 {% else %}
                     <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107; margin-top: 15px;">
                         <h3 style="margin: 0 0 5px 0;">⏳ Em Análise</h3>
-                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> está a ser avaliada pela nossa equipe. Acompanhe os detalhes através do seu Checklist.</p>
+                        <p style="margin: 0;">A sua candidatura para <strong>{{ inscricao.edital.titulo }}</strong> está sendo avaliada pela nossa equipe. Acompanhe os detalhes através do seu Checklist.</p>
                     </div>
                 {% endif %}
             {% else %}
