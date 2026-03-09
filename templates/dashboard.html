@@ -88,6 +88,15 @@
                                 <a href="{{ url_for('checklist') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold;">Ver checklist completo ➔</a>
                             </li>
                         {% endif %}
+                        {% if inscricao.status != 'Aprovado' %}
+                        <li style="margin-top: 25px; border-bottom: none; text-align: center;">
+                            <form action="{{ url_for('cancelar_inscricao', edital_id=inscricao.edital.id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar sua inscrição? Todos os seus documentos em análise serão mantidos, mas você sairá da disputa pela vaga.');">
+                                <button type="submit" class="btn-sair" style="width: 100%; padding: 10px; cursor: pointer; box-sizing: border-box;">
+                                    ❌ Cancelar Minha Inscrição
+                                </button>
+                            </form>
+                        </li>
+                        {% endif %}
                     </ul>
                 {% else %}
                     <p style="color: #666;">Você ainda não iniciou nenhuma candidatura.</p>

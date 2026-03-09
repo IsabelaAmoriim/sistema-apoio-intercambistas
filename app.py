@@ -455,11 +455,7 @@ class InscreverEdital(MethodView):
         if edital.inscricoes_nao_iniciadas():
             flash("O período para inscrição desse edital ainda não começou")
             return redirect(url_for('dashboard'))
-        
-        if not edital.tem_vagas_disponiveis():
-            flash("Não há mais vagas disponíveis para este edital")
-            return redirect(url_for('dashboard'))
-        
+              
         if current_user.esta_inscrito_no_edital(edital.id):
             flash("Você já está inscrito neste edital!")
             return redirect(url_for('checklist'))
@@ -840,6 +836,18 @@ class EditarEdital(MethodView):
         edital.data_ini_programa = datetime.strptime(data_ini_inter_str, '%Y-%m-%d').date() if data_ini_inter_str else None
         edital.data_fim_programa = datetime.strptime(data_lim_inter_str, '%Y-%m-%d').date() if data_lim_inter_str else None
 
+        if edital.data_fim_edital and edital.data_ini_edital and edital.data_fim_edital < edital.data_ini_edital:
+            flash("Erro: A data de término das inscrições não pode ser anterior ao início!")
+            return redirect(request.referrer)
+            
+        if edital.data_fim_programa and edital.data_ini_programa and edital.data_fim_programa < edital.data_ini_programa:
+            flash("Erro: A data de término do intercâmbio não pode ser anterior ao início!")
+            return redirect(request.referrer)
+            
+        if edital.data_ini_programa and edital.data_fim_edital and edital.data_ini_programa < edital.data_fim_edital:
+            flash("Erro: O intercâmbio não pode começar antes do fim das inscrições!")
+            return redirect(request.referrer)
+        
         edital.documentos_exigidos.clear()
         documentos_ids = request.form.getlist('documentos_id')
 
@@ -909,11 +917,20 @@ class AdminAvaliarInscricao(MethodView):
         acao = request.form.get('acao')
         
         if acao == 'aprovar':
-            if not inscricao.edital.tem_vagas_disponiveis():
-                flash(f"Não é possível aprovar. O edital já atingiu o limite de {inscricao.edital.vagas} vagas!")
+
+            vagas_ocupadas = Inscricao.query.filter_by(edital_id=inscricao.edital_id, status='Aprovado').count()
+            
+            if vagas_ocupadas >= inscricao.edital.vagas:
+                flash(f"Não é possível aprovar. O edital já atingiu o limite de {inscricao.edital.vagas} vagas aprovadas!")
                 return redirect(request.referrer)
             
             inscricao.status = 'Aprovado'
+            
+            
+            docs_aluno = DocumentoUsuario.query.filter_by(usuario_id=inscricao.usuario_id).all()
+            for doc in docs_aluno:
+                doc.status = 'Aprovado'
+                
             flash(f"Candidatura de {inscricao.usuario.nome} APROVADA com sucesso!")
         elif acao == 'reprovar':
             inscricao.status = 'Reprovado'
