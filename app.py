@@ -55,6 +55,10 @@ class Cadastro(MethodView):
         email = request.form.get('email')
         cpf = request.form.get('cpf')
         senha = request.form.get('senha')
+
+        if Usuario.query.filter_by(cpf=cpf).first():
+            flash("Esse CPF já está sendo utilizado")
+            return render_template("cadastro.html", erro=True)
         
         if Usuario.buscar_por_email(email):
             flash("Esse email já está sendo utilizado")
