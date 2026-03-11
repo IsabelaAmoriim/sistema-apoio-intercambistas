@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Painel do Aluno - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 class="titulo-secao">Meus Documentos</h2>
+        <p class="subtitulo">Abaixo estão os documentos necessários para o seu processo de intercâmbio.</p>
+
+        <a href="{{ url_for('cadastro_documento') }}" class="btn-novo-doc">
+            + Enviar Novo Documento
+        </a>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                    <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="card-tabela">
+            {% if documentos %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>NOME DO ARQUIVO</th>
+                        <th>CATEGORIA</th>
+                        <th>STATUS</th>
+                        <th>AÇÕES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                    
+                    {% for doc in documentos %}
+                    <tr>
+                        <td><strong>{{ doc.tipo_documento.nome }}</strong></td>
+                        <td>{{ nomes_categorias.get(doc.tipo_documento.descricao, doc.tipo_documento.descricao) or '-' }}</td>
+                        <td>
+                            <span class="badge {{ doc.status|lower|replace(' ', '-') }}">
+                                {{ doc.status }}
+                            </span>
+                        </td>
+                        <td class="acoes">
+                            <a href="{{ url_for('baixar_documento', id=doc.id) }}" class="btn-emoji" title="Baixar Documento">📥</a>
+                            <button onclick="confirmarExclusao('{{ doc.id }}', '{{ doc.tipo_documento.nome }}')" class="btn-emoji btn-excluir" title="Excluir Documento">🗑️</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; padding: 20px; color: #999;">
+                Nenhum documento encontrado. Clique em "Enviar Novo Documento" para começar.
+            </p>
+            {% endif %}
+        </div>
+    </main>
+
+    <script>
+        function confirmarExclusao(docId, docNome) {
+            let confirmacao = confirm(`Tem certeza de que deseja excluir o documento "${docNome}" permanentemente?`);
+            if (confirmacao) {
+                window.location.href = `/excluir-documento/${docId}`;
+            }
+        }
+    </script>
+</body>
+</html>

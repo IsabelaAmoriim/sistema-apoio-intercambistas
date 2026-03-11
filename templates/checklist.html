@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container-checklist { display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; }
+        .card-checklist { background: white; width: 100%; max-width: 700px; padding: 30px 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .titulo-checklist { color: rgb(24, 6, 96); font-size: 22px; margin-bottom: 25px; text-align: center; }
+        
+        .item-checklist { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .item-checklist:last-child { border-bottom: none; }
+        .info-tarefa { display: flex; align-items: center; gap: 15px; }
+        .info-tarefa i { color: rgb(24, 6, 96); font-size: 20px; width: 25px; text-align: center; }
+        .nome-tarefa { font-size: 16px; color: #333; font-weight: 500; }
+        
+        .badge-status { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .concluido { background: #e8f5e9; color: #2e7d32; }
+        .pendente { background: #fff3e0; color: #ef6c00; }
+
+        .btn-acao-checklist { background-color: rgb(24, 6, 96); color: white; padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; display: inline-block; transition: 0.3s; }
+        .btn-acao-checklist:hover { background-color: rgb(40, 10, 150); transform: translateY(-2px); color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-checklist">
+        
+        {% if not inscricao %}
+            <div class="card-checklist" style="text-align: center;">
+                <i class="fas fa-clipboard-list" style="font-size: 60px; color: #ccc; margin-bottom: 20px;"></i>
+                <h2 style="color: rgb(24, 6, 96); margin-bottom: 10px;">O seu Checklist está vazio</h2>
+                <p style="color: #666; margin-bottom: 30px;">Vá até a aba de Editais Abertos, escolha o seu destino e inscreva-se para desbloquear as suas tarefas!</p>
+                <a href="{{ url_for('editais_abertos') }}" class="btn-acao-checklist">Ver Editais Disponíveis</a>
+            </div>
+        {% else %}
+            <div class="card-checklist">
+                <h2 class="titulo-checklist">O Meu Progresso: {{ inscricao.edital.titulo }}</h2>
+                
+                <div style="background-color: #eee; border-radius: 10px; height: 15px; margin-bottom: 10px; overflow: hidden;">
+                    <div style="width: {{ progresso }}%; background-color: #28a745; height: 100%; border-radius: 10px; transition: width 0.8s ease-in-out;"></div>
+                </div>
+                <p style="text-align: center; color: #555; font-weight: bold; margin-bottom: 30px;">{{ progresso }}% Concluído</p>
+
+                {% for tarefa in tarefas %}
+                <div class="item-checklist">
+                    <div class="info-tarefa">
+                        <i class="fas {{ tarefa.icone }}"></i>
+                        <span class="nome-tarefa">{{ tarefa.nome }}</span>
+                    </div>
+                    <span class="badge-status {{ tarefa.classe }}">{{ tarefa.status }}</span>
+                </div>
+                {% endfor %}
+
+                {% if progresso < 100 %}
+                <div style="text-align: center; margin-top: 35px;">
+                    <a href="{{ url_for('lista_documentos') }}" class="btn-acao-checklist">
+                        <i class="fas fa-file-upload" style="margin-right: 8px;"></i> Enviar Documentos Pendentes
+                    </a>
+                </div>
+                {% else %}
+                <div style="text-align: center; margin-top: 35px; padding: 15px; background: #e8f5e9; border-radius: 10px; color: #2e7d32; font-weight: bold;">
+                    🎉 Parabéns! Você concluiu todos os requisitos. Agora é só aguardar a análise do administrador.
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </main>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliar Inscrição - Admin SAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    <header>
+        <h1 id="logo"><a href="{{ url_for('admin_dashboard') }}">SAI | ADMIN</a></h1>
+       <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_listar_inscricoes') }}" style="color: #ffc107;">Avaliar Inscrições</a></li>
+                <li><a href="{{ url_for('admin_listar_editais') }}">Listar Editais</a></li>
+                <li class="dropdown">
+                    <a href="#">Cadastros ▾</a>
+                    <ul class="submenu">
+                        <li><a href="{{ url_for('admin_cadastro_pais') }}">País</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_universidade') }}">Universidade</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_documento') }}">Doc. Exigido</a></li>
+                        <li><a href="{{ url_for('admin_cadastro_edital') }}">Edital</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="container-cadastro">
+        <div class="card-form" style="max-width: 800px; text-align: left;">
+            <a href="{{ url_for('admin_listar_inscricoes') }}" style="color: rgb(24, 6, 96); text-decoration: none; font-weight: bold; margin-bottom: 20px; display: inline-block;">
+                ⬅ Voltar para Lista
+            </a>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container" style="margin-bottom: 20px;">
+                {% for message in messages %}
+                <li class="alerta-item" style="background-color: #f8d7da; color: #721c24; border-left: 5px solid #dc3545;">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            <h2 class="titulo-form" style="margin-bottom: 10px;">Candidatura de {{ inscricao.usuario.nome }}</h2>
+            <p class="subtitulo" style="margin-bottom: 30px;"><strong>Edital:</strong> {{ inscricao.edital.titulo }} | <strong>Status Atual:</strong> {{ inscricao.status }}</p>
+
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 5px solid rgb(24, 6, 96);">
+                <h3 style="color: rgb(24, 6, 96); margin-top: 0;">Dados Acadêmicos</h3>
+                <p><strong>CRA Informado:</strong> <span style="font-size: 18px; font-weight: bold; color: #28a745;">{{ inscricao.cra }}</span></p>
+                <p><strong>Carta de Motivação:</strong></p>
+                <div style="background: white; padding: 15px; border: 1px solid #ddd; border-radius: 5px; font-style: italic; color: #555;">
+                    {{ inscricao.carta_motivacao }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3 style="color: rgb(24, 6, 96); border-bottom: 2px solid #eee; padding-bottom: 10px;">Documentos Enviados pelo Aluno</h3>
+                <ul style="list-style: none; padding: 0;">
+                    {% set nomes_categorias = {'imigracao': 'Imigração', 'identidade': 'Identidade', 'academico': 'Acadêmico'} %}
+                    
+                    {% for doc in documentos %}
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee;">
+                        <span>📄 <strong>{{ doc.tipo_documento.nome }}</strong> ({{ nomes_categorias.get(doc.tipo_documento.descricao, doc.tipo_documento.descricao) }})</span>
+                        <a href="{{ url_for('admin_baixar_documento', id=doc.id) }}" class="btn-dash" style="text-decoration: none; padding: 8px 15px; font-size: 13px;">Baixar Arquivo</a>
+                    </li>
+                    {% else %}
+                    <p style="color: #ff4d4d; font-weight: bold;">O aluno ainda não enviou nenhum documento obrigatório no Checklist.</p>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <h3 style="color: rgb(24, 6, 96); text-align: center; margin-bottom: 15px;">Decisão Final</h3>
+            <form action="{{ url_for('admin_avaliar_inscricao', id=inscricao.id) }}" method="POST" style="flex-direction: row; justify-content: center; gap: 20px;">
+                <button type="submit" name="acao" value="aprovar" class="btn-enviar" style="background-color: #28a745; width: 200px;">✅ APROVAR</button>
+                <button type="submit" name="acao" value="reprovar" class="btn-enviar" style="background-color: #dc3545; width: 200px;">❌ REPROVAR</button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

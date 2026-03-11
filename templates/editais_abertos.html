@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editais Abertos - SAI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+<body>
+    
+    <header>
+        <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="dash-header">
+            <h2>Editais de Intercâmbio Disponíveis</h2>
+            <p>Explore as oportunidades abertas e inicie o seu processo de candidatura.</p>
+        </section>
+
+        <div class="grid-editais">
+            {% for edital in editais %}
+                <div class="card-edital">
+                    <div class="info-edital">
+                        <h3>{{ edital.titulo }}</h3>
+                        
+                        <p><i class="fas fa-globe-americas"></i> <strong>Destino:</strong> {{ edital.universidade.pais_origem.nome }} ({{ edital.universidade.pais_origem.iso }})</p>
+                        <p><i class="fas fa-university"></i> <strong>Instituição:</strong> {{ edital.universidade.nome }}</p>
+                        
+                        <p><i class="fas fa-users"></i> <strong>Vagas:</strong> {{ edital.vagas }}</p>
+                        <p><i class="fas fa-calendar-alt"></i> <strong>Inscrições até:</strong> {{ edital.data_fim_edital.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    
+                    <a href="{{ url_for('detalhes_edital', id=edital.id) }}" class="btn-detalhes">Ver Detalhes do Edital</a>
+                </div>
+            {% else %}
+                <div class="dash-card" style="grid-column: 1 / -1; text-align: center;">
+                    <p style="color: #666; padding: 20px;">Nenhum edital com inscrições abertas no momento. Fique de olho!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+
+</body>
+</html>

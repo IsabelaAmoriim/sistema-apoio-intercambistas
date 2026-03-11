@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Criar Conta - SAI</title>
+</head> 
+<body>
+    <header>
+        <h1 id="logo">
+            <a href="{{ url_for('home') }}">SAI</a>
+        </h1>
+        <nav>
+            <ul>
+               <li><a href="/">Início</a></li>
+            <li><a href="/#recursos">Nossos Recursos</a></li>
+            <li><a href="/#comunidade">A Comunidade</a></li>
+            <li><a href="/#vantagens">Vantagens</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="{{ url_for('login') }}" class="btn-entrar">Entrar</a>
+            <a href="{{ url_for('cadastro') }}" class="btn-criar">Criar Conta</a>
+        </div>
+    </header>
+
+    <main class="main-login-cadastro">
+        <div class="card-formulario">
+            <h2>Crie sua conta</h2>
+            <p style="margin-bottom: 20px; color: #666;">
+                Junte-se à nossa comunidade.
+            </p>
+            
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="alertas-container">
+                {% for message in messages %}
+                <li class="alerta-item">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('cadastro') }}" method="POST">
+                <input type="text" name="nome" class="form-input" placeholder="Nome Completo" required>
+                <input type="text" name="cpf" class="form-input" placeholder="CPF (somente números)" maxlength="11" required>
+                <input type="email" name="email" class="form-input" placeholder="Seu melhor E-mail" required>
+                <input type="password" name="senha" class="form-input" placeholder="Crie uma Senha (mínimo 8 caracteres)" minlength="8" required>
+                
+                <button type="submit" class="btn-submit">Cadastrar</button>
+            </form>
+
+            <a href="{{ url_for('login') }}" class="link-extra">
+                Já tem uma conta? Faça login.
+            </a>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,71 @@
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fórum - SAI</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <style>
+            /* CSS REUTILIZADO E ADAPTADO PARA O FÓRUM */
+            .container-forum { display: flex; flex-direction: column; align-items: center; padding: 25px 20px; }
+            .header-forum { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+            .btn-novo-topico { background: #1a0963; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; }
+            
+            .card-forum { background: white; width: 100%; max-width: 800px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+            .topico-linha { display: grid; grid-template-columns: 1fr 150px 100px; padding: 15px; border-bottom: 1px solid #f0f0f0; align-items: center; }
+            .topico-linha:last-child { border-bottom: none; }
+            
+            .topico-info h3 { margin: 0; font-size: 16px; color: #1a0963; }
+            .topico-info p { margin: 5px 0 0; font-size: 12px; color: #888; }
+            .autor-info, .respostas-info { font-size: 13px; color: #666; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1 id="logo"><a href="{{ url_for('dashboard') }}">SAI</a></h1>
+                <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}">Início</a></li>
+                <li><a href="{{ url_for('editais_abertos') }}">Editais Abertos</a></li>
+                <li><a href="{{ url_for('lista_documentos') }}">Meus Documentos</a></li>
+                <li><a href="{{ url_for('checklist') }}">Checklist</a></li>
+                <li><a href="{{ url_for('forum') }}">Fórum</a></li>
+            </ul>
+        </nav>
+            <div class="auth-buttons">
+                <span class="usuario-ola">Olá, {{ current_user.nome }}!</span>
+                <a href="{{ url_for('logout') }}" class="btn-sair">Sair</a>
+            </div>
+        </header>
+
+        <main class="container-forum">
+            <div class="header-forum">
+                <h2 style="color: #1a0963; margin: 0;">Fórum de Discussão</h2>
+                <a href="{{ url_for('forum_escrever') }}" class="btn-novo-topico">+ Novo Tópico</a>
+            </div>
+
+            <div class="card-forum">
+                {% for topico in topicos %}
+                <div class="topico-linha">
+                    <div class="topico-info">
+                        <h3>{{ topico.titulo }}</h3>
+                        <p>Postado em {{ topico.data_criacao.strftime('%d/%m/%Y às %H:%M') }} por <strong>{{ topico.autor.nome }}</strong></p>
+                    </div>
+                    <div class="autor-info">
+                        <span style="color: #999; font-style: italic;">{{ topico.conteudo[:40] }}...</span>
+                    </div>
+                    <div class="respostas-info">
+                        <a href="{{ url_for('forum_ler_topico', id=topico.id) }}" style="color: rgb(24, 6, 96); font-weight: bold; cursor: pointer; text-decoration: none;">Ler Tópico ➔</a>
+                    </div>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 30px; color: #666;">
+                    <i class="fas fa-comments" style="font-size: 40px; margin-bottom: 15px; color: #ccc;"></i>
+                    <p>Nenhum tópico criado ainda. Seja o primeiro a compartilhar uma dúvida ou dica!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </body>
+    </html>
